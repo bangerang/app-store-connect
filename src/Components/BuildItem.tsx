@@ -6,6 +6,8 @@ import BuildDetail from "./BuildDetail";
 import React, { useEffect, useMemo } from "react";
 import { useState } from "react";
 import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
+import InviteUsersFromCSV from "./InviteUsersFromCSV";
+import IndividualTestersList from "./IndividualTestersList";
 
 interface BuildItemProps {
     app: App;
@@ -197,18 +199,24 @@ export default function BuildItem({ build, app }: BuildItemProps) {
             accessories={accessoriesForBuild()}
             actions={
             <ActionPanel>
-                {canInviteTesters() && <Action.Push title="Invite testers" target={<BuildDetail 
-                                                                                        build={build} 
-                                                                                        app={app} 
-                                                                                        groupsDidChange={(groups: BetaGroup[]) => {
-                                                                                            build.betaGroups = groups;
-                                                                                            setBetaGroups(groups);
-                                                                                        }}
-                                                                                        betaStateDidChange={(betaState: string) => {
-                                                                                            build.buildBetaDetails.attributes.externalBuildState = "WAITING_FOR_BETA_REVIEW"
-                                                                                            setExternalBuildState("WAITING_FOR_BETA_REVIEW")
-                                                                                        }} />} 
-                                                                                    />}
+                {canInviteTesters() && <>
+                <Action.Push title="Update Beta Groups" target={<BuildDetail 
+                                                                    build={build} 
+                                                                    app={app} 
+                                                                    groupsDidChange={(groups: BetaGroup[]) => {
+                                                                        build.betaGroups = groups;
+                                                                        setBetaGroups(groups);
+                                                                    }}
+                                                                    betaStateDidChange={(betaState: string) => {
+                                                                        build.buildBetaDetails.attributes.externalBuildState = "WAITING_FOR_BETA_REVIEW"
+                                                                        setExternalBuildState("WAITING_FOR_BETA_REVIEW")
+                                                                    }} 
+                                                                    />
+                                                                } 
+                                                                />
+                <Action.Push title="Update Individual Testers" target={<IndividualTestersList app={app} build={build} />} />
+                </>
+        }
             </ActionPanel>
             }  
       />

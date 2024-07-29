@@ -49,14 +49,14 @@ const attributesSchema = z.object({
 
 export const buildSchema = z.object({
   type: z.literal('builds'),
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: attributesSchema,
 });
 export const buildSchemas = z.array(buildSchema);
 
 export const buildSchemaWithBetaGroups = z.object({
   type: z.literal('builds'),
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: z.object({
     version: z.string(),
     uploadedDate: z.string(),
@@ -85,7 +85,7 @@ export const buildSchemasWithBetaGroups = z.array(buildSchemaWithBetaGroups);
 
 export const betaGroupSchema = z.object({
   type: z.literal('betaGroups'),
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: z.object({
     name: z.string(),
     createdDate: z.string(),
@@ -112,7 +112,7 @@ export type AppWithIcon = App & { icon: string };
 
 export const appStoreVersionSchema = z.object({
   type: z.literal('appStoreVersions'),
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: z.object({
     platform: z.string(),
     versionString: z.string(),
@@ -129,7 +129,7 @@ export const appStoreVersionSchema = z.object({
 });
 
 export const preReleaseVersionSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: z.object({
     platform: z.string(),
     version: z.string()
@@ -138,7 +138,7 @@ export const preReleaseVersionSchema = z.object({
 
 export const betaBuildLocalizationSchema = z.object({
   type: z.literal('betaBuildLocalizations'),
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: z.object({
     whatsNew: z.string().nullable(),
     locale: z.string(),
@@ -147,7 +147,7 @@ export const betaBuildLocalizationSchema = z.object({
 
 export const buildBetaDetailSchema = z.object({
   type: z.literal('buildBetaDetails'),
-  id: z.string().uuid(),
+  id: z.string(),
   attributes: z.object({
     internalBuildState: z.enum(['PROCESSING', 'PROCESSING_EXCEPTION', 'MISSING_EXPORT_COMPLIANCE', 'READY_FOR_BETA_TESTING', 'IN_BETA_TESTING', 'EXPIRED', 'IN_EXPORT_COMPLIANCE_REVIEW']).optional(),
     externalBuildState: z.enum(['PROCESSING', 'PROCESSING_EXCEPTION', 'MISSING_EXPORT_COMPLIANCE', 'READY_FOR_BETA_TESTING', 'IN_BETA_TESTING', 'EXPIRED', 'READY_FOR_BETA_SUBMISSION', 'IN_EXPORT_COMPLIANCE_REVIEW', 'WAITING_FOR_BETA_REVIEW', 'IN_BETA_REVIEW', 'BETA_REJECTED', 'BETA_APPROVED']).optional(),
@@ -195,6 +195,95 @@ export const betaBuildUsageSchema = z.object({
     })
   }))
 });
+
+const betaTesterSchema = z.object({
+  type: z.literal('betaTesters'),
+  id: z.string(),
+  attributes: z.object({
+    firstName: z.string().nullable(),
+    lastName: z.string().nullable(),
+    email: z.string().nullable(),
+    inviteType: z.string().nullable(),
+    state: z.string().nullable(),
+  }),
+});
+
+export const userSchema = z.object({
+  type: z.literal('users'),
+  id: z.string(),
+  attributes: z.object({
+    username: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    roles: z.array(z.string()),
+    allAppsVisible: z.boolean(),
+    provisioningAllowed: z.boolean(),
+  }),
+  relationships: z.object({
+    visibleApps: z.object({
+      data: z.array(z.object({
+        type: z.string(),
+        id: z.string(),
+      }))
+    })
+  })
+});
+
+export const betaAppReviewDetailSchema = z.object({
+  type: z.literal('betaAppReviewDetails'),
+  id: z.string(),
+  attributes: z.object({
+    contactFirstName: z.string(),
+    contactLastName: z.string(),
+    contactPhone: z.string(),
+    contactEmail: z.string(),
+    demoAccountName: z.string().nullable(),
+    demoAccountPassword: z.string().nullable(),
+    demoAccountRequired: z.boolean(),
+    notes: z.string().nullable(),
+  }),
+});
+
+export const betaLicenseAgreementSchema = z.object({
+  type: z.literal('betaLicenseAgreements'),
+  id: z.string(),
+  attributes: z.object({
+    agreementText: z.string().nullable(),
+  }),
+});
+
+export const betaLicenseAgreementsSchema = z.array(betaLicenseAgreementSchema);
+
+export type BetaLicenseAgreement = z.infer<typeof betaLicenseAgreementSchema>;
+
+export const betaAppReviewDetailsSchema = z.array(betaAppReviewDetailSchema);
+
+export type BetaAppReviewDetail = z.infer<typeof betaAppReviewDetailSchema>;
+
+export const betaAppLocalizationSchema = z.object({
+  type: z.literal('betaAppLocalizations'),
+  id: z.string(),
+  attributes: z.object({
+    description: z.string(),
+    locale: z.string(),
+    marketingUrl: z.string().nullable(),
+    privacyPolicyUrl: z.string().nullable(),
+    tvOsPrivacyPolicy: z.string().nullable(),
+    feedbackEmail: z.string(),
+  }),
+});
+
+export const betaAppLocalizationsSchema = z.array(betaAppLocalizationSchema);
+
+export type BetaAppLocalization = z.infer<typeof betaAppLocalizationSchema>;
+
+export const usersSchema = z.array(userSchema);
+
+export type User = z.infer<typeof userSchema>;
+
+export const betaTestersSchema = z.array(betaTesterSchema);
+
+export type BetaTester = z.infer<typeof betaTesterSchema>;
 
 export const betaBuildUsagesSchema = z.array(betaBuildUsageSchema);
 

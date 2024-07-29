@@ -21,6 +21,12 @@
       "title": "Show builds",
       "description": "Template with a plain detail view",
       "mode": "view"
+    },
+    {
+      "name": "testInformation",
+      "title": "Test information",
+      "description": "Test information",
+      "mode": "view"
     }
   ],
   "dependencies": {

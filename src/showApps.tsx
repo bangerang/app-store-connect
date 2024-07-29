@@ -24,7 +24,8 @@ const { data, isLoading } = useAppStoreConnectApi(path, appSchemas);
       >
       {data?.map((app: App) => (
         <AppItem
-          key={app.id}
+          id={app.id}
+          title={app.attributes.name}
           app={app}
           actions={
             <ActionPanel>

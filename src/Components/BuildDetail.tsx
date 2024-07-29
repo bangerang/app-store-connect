@@ -2,6 +2,7 @@ import { ActionPanel, Form, Action, showToast, Toast, Icon, Color } from "@rayca
 import React, { useEffect, useState } from "react";
 import { Build, App, betaGroupsSchema, buildSchemasWithBetaGroups, BetaGroup, betaBuildLocalizationsSchema, BuildWithBetaDetailAndBetaGroups, buildsWithBetaDetailSchema, AppStoreVersion } from "../Model/schemas";
 import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
+import { presentError } from "../Utils/utils";
 
 interface BuildDetailProps {
     build: BuildWithBetaDetailAndBetaGroups;
@@ -102,6 +103,9 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     const updateWhatToTest = async () => {
         setSubmitIsLoading(true);
         if (betaBuildLocalizations === null || betaBuildLocalizations.length === 0) {
+            return;
+        }
+        if (currentWhatToTest === betaBuildLocalizations[0].attributes.whatsNew) {
             return;
         }
         const response = await fetchAppStoreConnect(`/betaBuildLocalizations/${betaBuildLocalizations[0].id}`, "PATCH", {
@@ -222,122 +226,44 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                                             message: "Submitted for beta review",
                                         });
                                     } catch (error) {
-                                        console.log("Error", error);
+                                        presentError(error);
                                         setSubmitIsLoading(false);
-                                        if (error instanceof ATCError) {
-                                            showToast({
-                                                style: Toast.Style.Failure,
-                                                title: error.title,
-                                                message: error.detail,
-                                            });
-                                        } else {
-                                            showToast({
-                                                style: Toast.Style.Failure,
-                                                title: "Oh no!",
-                                                message: "Could not submit for beta review",
-                                            });
-                                        }
                                     }
                                 })();
                             } else {
-                                for (let i = 0; i < types.length; i++) {
-                                    const type = types[i];
-                                    switch (type) {
-                                        case "UPDATE_WHAT_TO_TEST":
-                                            (async () => {
-                                                try {
+                                (async () => {
+                                    try {
+                                        for (let i = 0; i < types.length; i++) {
+                                            const type = types[i];
+                                            switch (type) {
+                                                case "UPDATE_WHAT_TO_TEST":
                                                     await updateWhatToTest();
-                                                } catch (error) {
-                                                    setSubmitIsLoading(false);
-                                                    showToast({
-                                                        style: Toast.Style.Failure,
-                                                        title: "Oh no!",
-                                                        message: "Could not update what to test",
-                                                    });
-                                                }
-                                                if (i === types.length - 1) {
-                                                    setSubmitIsLoading(false);
-                                                    showToast({
-                                                        style: Toast.Style.Success,
-                                                        title: "Success!",
-                                                        message: "Updated build",
-                                                    });
-                                                }
-                                            })();
-                                            break;
-                                        case "ADD_GROUPS_TO_BUILD":
-                                            (async () => {
-                                                try {
-                                                    if (betaGroups === null) {
-                                                        return;
-                                                    }
+                                                break;
+                                                case "ADD_GROUPS_TO_BUILD":
                                                     if (addedGroups.length > 0) {
                                                         await addGroupsToBuild(addedGroups);
                                                         groupsDidChange(usedGroups);
                                                     }
-                                                } catch (error) {
-                                                    if (error instanceof ATCError) {
-                                                        showToast({
-                                                            style: Toast.Style.Failure,
-                                                            title: error.title,
-                                                            message: error.detail,
-                                                        });
-                                                    } else {
-                                                        showToast({
-                                                            style: Toast.Style.Failure,
-                                                            title: "Oh no!",
-                                                            message: "Could not add groups to build",
-                                                        });
-                                                    }
-                                                }
-                                                if (i === types.length - 1) {
-                                                    setSubmitIsLoading(false);
-                                                    showToast({
-                                                        style: Toast.Style.Success,
-                                                        title: "Success!",
-                                                        message: "Updated build",
-                                                    });
-                                                }
-                                            })();
-                                            break;
-                                        case "REMOVE_GROUPS_FROM_BUILD":
-                                            (async () => {
-                                                try {
-                                                    if (betaGroups === null) {
-                                                        return;
-                                                    }
+                                                break;
+                                                case "REMOVE_GROUPS_FROM_BUILD":
                                                     if (removedGroups.length > 0) {
                                                         await removeGroupsFromBuild(removedGroups);
                                                         groupsDidChange(usedGroups);
                                                     }
-                                                } catch (error) {
-                                                    if (error instanceof ATCError) {
-                                                        showToast({
-                                                            style: Toast.Style.Failure,
-                                                            title: error.title,
-                                                            message: error.detail,
-                                                        });
-                                                    } else {
-                                                        showToast({
-                                                            style: Toast.Style.Failure,
-                                                            title: "Oh no!",
-                                                            message: "Could not remove groups from build",
-                                                        });
-                                                    }
-                                                }
-                                                if (i === types.length - 1) {
-                                                    setSubmitIsLoading(false);
-                                                    showToast({
-                                                        style: Toast.Style.Success,
-                                                        title: "Success!",
-                                                        message: "Updated build",
-                                                    });
-                                                }
-
-                                            })();
-                                            break;
+                                                break;
+                                            }
                                         }
-                                }
+                                        setSubmitIsLoading(false);
+                                        showToast({
+                                            style: Toast.Style.Success,
+                                            title: "Success!",
+                                            message: "Updated build",
+                                        });
+                                    } catch (error) {
+                                        presentError(error);
+                                        setSubmitIsLoading(false);
+                                    }
+                                })();
                             }
                         } else {
                             setWhatToTestError("You must specify what to test");
@@ -383,7 +309,7 @@ class ATCError extends Error {
         Error.captureStackTrace(this, ATCError);
       }
     }
-  }
+}
 
 function validateWhatToTest(whatToTest: string | undefined, usedGroups: BetaGroup[]) {
     const notInternal = usedGroups.find(bg => {
