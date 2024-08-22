@@ -1,5 +1,5 @@
-import { List, ActionPanel, Action, Image, open } from "@raycast/api";
-import { App, AppWithIcon, buildSchemas, Build } from "../Model/schemas";
+import { List, Image } from "@raycast/api";
+import { App, buildSchemas, } from "../Model/schemas";
 import React, { useEffect, useMemo } from "react";
 import { useState } from "react";
 import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
@@ -13,7 +13,9 @@ interface AppItemProps {
     actions: React.ReactNode;
 }
 export default function AppItem({ id, app, title, actions, subtitle, accessories }: AppItemProps) {
-const { data: builds } = useAppStoreConnectApi(`/builds?filter[app]=${app.id}&limit=1&sort=-uploadedDate`, buildSchemas);
+const { data: builds } = useAppStoreConnectApi(`/builds?filter[app]=${app.id}&limit=1&sort=-uploadedDate`, (response) => {
+  return buildSchemas.safeParse(response.data).data ?? null;
+});
   
   const iconURL = useMemo(() => {
     if (builds === null) {

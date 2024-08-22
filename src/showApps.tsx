@@ -1,9 +1,8 @@
 import { Detail } from "@raycast/api";
 import { LocalStorage, ActionPanel, Form, Action, List, useNavigation, open } from "@raycast/api";
 import React, { useEffect, useState, ReactNode } from "react";
-import fs from "fs";
 import { useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
-import { App, AppWithIcon, appSchemas } from "./Model/schemas";
+import { App, appSchemas } from "./Model/schemas";
 import AppItem from "./Components/AppItem";
 import AppDetail from "./Components/AppDetail"
 import SignIn from "./Components/SignIn";
@@ -12,7 +11,9 @@ export default function Command() {
 const [path, setPath] = useState<string | undefined >(undefined)
 const [apps, setApps] = useState<App[]>([]);
 
-const { data, isLoading } = useAppStoreConnectApi(path, appSchemas);
+const { data, isLoading } = useAppStoreConnectApi(path, (response) => {
+  return appSchemas.safeParse(response.data).data;
+});
 
 
   return (

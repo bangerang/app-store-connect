@@ -1,9 +1,8 @@
 import { ActionPanel, Action, List, Image, Icon, Color } from "@raycast/api";
 import { useEffect, useState } from "react";
-import { useAppStoreConnectApi, useAppStoreConnectApiNoData } from "../Hooks/useAppStoreConnect";
+import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
 import { App, Build, AppStoreVersion, appSchemas, BuildWithBetaDetailAndBetaGroups, appStoreVersionSchemas, buildsWithBetaDetailSchema, PreReleaseVersion, preReleaseVersionSchemas, BetaGroup } from "../Model/schemas";
 import BuildItem from "./BuildItem";
-import AppItem from "./AppItem";
 
 interface BuildListProps {
     app: App;
@@ -15,19 +14,26 @@ interface VersionWithPlatform {
     version: string;
 }
 
-export default function Command({ app }: BuildListProps) {
+export default function BuildList({ app }: BuildListProps) {
     const [selectedVersion, setSelectedVersion] = useState<VersionWithPlatform | undefined>(undefined);
 
     const [buildsPath, setBuildsPath] = useState<string | undefined>(undefined);
 
-    const { data: builds, isLoading: isLoadingApp, error: errorApp } = useAppStoreConnectApiNoData(buildsPath, buildsWithBetaDetailSchema);
+    const { data: builds, isLoading: isLoadingApp, error: errorApp, pagination } = useAppStoreConnectApi(buildsPath, (response: any) => {
+        return buildsWithBetaDetailSchema.parse(response);
+    });
 
-    const { data: preReleaseVersions, isLoading: isLoadingPreReleaseVersions } = useAppStoreConnectApi(`/preReleaseVersions?filter[app]=${app.id}&sort=-version&fields[preReleaseVersions]=builds,version,platform&limit=5`, preReleaseVersionSchemas);
+    const { data: preReleaseVersions, isLoading: isLoadingPreReleaseVersions } = useAppStoreConnectApi(`/preReleaseVersions?filter[app]=${app.id}&sort=-version&fields[preReleaseVersions]=builds,version,platform&limit=5`, (response) => {
+        return preReleaseVersionSchemas.safeParse(response.data).data ?? null;
+    });
 
     const [versions, setVersions] = useState<VersionWithPlatform[] | undefined>(undefined);
 
+    const [preReleaseVersionDone, setPreReleaseVersionDone] = useState<boolean>(false);
+
     useEffect(() => {
-        if (preReleaseVersions !== null) {
+        if (preReleaseVersions !== null && !preReleaseVersionDone) {
+            setPreReleaseVersionDone(true);
             const versions = preReleaseVersions.map((appStoreVersion) => {
                 return {
                     id: appStoreVersion.id,
@@ -35,31 +41,17 @@ export default function Command({ app }: BuildListProps) {
                     version: appStoreVersion.attributes.version
                 } as VersionWithPlatform;
             });
-            // versions.push(...preReleaseVersions.map((preReleaseVersion) => {
-            //     return {
-            //         id: preReleaseVersion.id,
-            //         platform: preReleaseVersion.attributes.platform,
-            //         version: preReleaseVersion.attributes.version
-            //     } as VersionWithPlatform;
-            // }));
-            // versions.sort((a, b) => {
-            //     if (a.platform === b.platform) {
-            //         return a.version.localeCompare(b.version);
-            //     } else {
-            //         return a.platform.localeCompare(b.platform);
-            //     }
-            // });
             setVersions(versions);
         }
     }, [preReleaseVersions]);
 
     useEffect(() => {
       if (selectedVersion !== undefined ) {
-        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
+        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=10&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
       }
     }, [selectedVersion])
 
-    const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
+    const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
         if (!appStoreVersion) {
             return "";
         }
@@ -79,6 +71,7 @@ export default function Command({ app }: BuildListProps) {
     
       return (
           <List
+            pagination={pagination}
             isLoading={isLoadingApp || isLoadingPreReleaseVersions}
             searchBarAccessory={
                 <List.Dropdown
@@ -89,7 +82,9 @@ export default function Command({ app }: BuildListProps) {
                         return;
                     }
                     setBuildsPath("");
+                    // setBuilds([]);
                     const newVersion = versions.find(version => version.id === newValue);
+                    console.log("newVersion", newVersion);
                     setSelectedVersion(newVersion);
                 }}
               >

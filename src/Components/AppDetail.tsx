@@ -1,8 +1,7 @@
 import { List, ActionPanel, Action, Image, Icon } from "@raycast/api";
-import { App, AppWithIcon, buildSchema, Build } from "../Model/schemas";
+import { App, buildSchema, Build } from "../Model/schemas";
 import React, { useEffect, useMemo } from "react";
 import { useState } from "react";
-import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
 
 export default function AppDetail({ app }: { app: App }) {
 

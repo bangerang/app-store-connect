@@ -1,165 +1,11 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { showToast, Toast, LocalStorage, Cache } from "@raycast/api";
+import { useFetch } from "@raycast/utils";
 import { SignJWT, importPKCS8 } from 'jose';
 import fetch from "node-fetch";
-import { set, z } from "zod";
 
-interface AppStoreConnectApiHookOptions {
-  version?: number;
-  urlBase?: string;
-  tokenExpiresInSeconds?: number;
-  automaticRetries?: number;
-  logRequests?: boolean;
-}
-
-const cache = new Cache()
 
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
-
-export function useAppStoreConnectApi<T>(path: string | undefined, schema: z.Schema<T>, method: Method = "GET", body?: any) {
-  const [url, setURL] = useState<string>("https://api.appstoreconnect.apple.com/v1");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [data, setData] = useState<T | null>(null);
-  const [rawData, setRawData] = useState<any | null>(null);
-
-  const [error, setError] = useState<any>(null);
-
-  useEffect(() => {
-    (async () => {
-      if (path === undefined) {
-        return;
-      }
-      // const cachedData = cache.get(path);
-      // if (cachedData !== undefined) {
-      //   setIsLoading(false);
-
-      //   // Decode the cached data from a string to a Uint8Array
-      //   const uint8Array = new Uint8Array(cachedData.split(',').map(Number));
-        
-
-      //   // Convert the Uint8Array to a string
-      //   const utf8Data = new TextDecoder().decode(uint8Array);
-      //   // Parse the JSON string into a JavaScript object
-      //   const data = JSON.parse(utf8Data);
-      //   setData(data);
-      //   return;
-      // }
-      setIsLoading(true);
-      try {
-        const response = await fetchAppStoreConnect(path, method, body);
-        if (!response) {
-          console.log("Failed to fetch data");
-          setError(new Error("Failed to fetch data"));
-          setIsLoading(false);
-          return;
-        }
-        const json = await response.json();
-        const item = schema.safeParse(json.data);
-        if (!item.success) {
-          console.log("Parsing failed", {path}, item.error);
-          console.log("JSON", json.data[0].relationships.visibleApps.data);
-          setError(item.error);
-          setIsLoading(false);
-          return;
-        } else {
-          console.log("Parsing success", {path}, item.data);
-          console.log("JSON", json);
-          setData(item.data);
-        }
-        setIsLoading(false);
-      // // UTF8 encode the JSON string
-      // const utf8Json = new TextEncoder().encode(JSON.stringify(json));
-      // // Convert the UTF-8 encoded JSON string to a Uint8Array
-      // const uint8Array = new Uint8Array(utf8Json);
-      // // Store the Uint8Array in the cache as string
-      // cache.set(path, uint8Array.toString());
-      } catch (error) {
-        setError(error);
-        setIsLoading(false);
-      }
-    })();
-  },[path, url]);
-
-  return {
-    isLoading,
-    data,
-    error,
-    rawData
-  };
-}
-
-export function useAppStoreConnectApiNoData<T>(path: string | undefined, schema: z.Schema<T>, method: Method = "GET", body?: any) {
-  const [url, setURL] = useState<string>("https://api.appstoreconnect.apple.com/v1");
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [data, setData] = useState<T | null>(null);
-  const [rawData, setRawData] = useState<any | null>(null);
-
-  const [error, setError] = useState<any>(null);
-
-  useEffect(() => {
-    (async () => {
-      if (path === undefined || path.length === 0) {
-        setData(null);
-        return;
-      }
-      // const cachedData = cache.get(path);
-      // if (cachedData !== undefined) {
-      //   setIsLoading(false);
-
-      //   // Decode the cached data from a string to a Uint8Array
-      //   const uint8Array = new Uint8Array(cachedData.split(',').map(Number));
-        
-
-      //   // Convert the Uint8Array to a string
-      //   const utf8Data = new TextDecoder().decode(uint8Array);
-      //   // Parse the JSON string into a JavaScript object
-      //   const data = JSON.parse(utf8Data);
-      //   setData(data);
-      //   return;
-      // }
-  
-      setIsLoading(true);
-      try {
-        const response = await fetchAppStoreConnect(path, method, body);
-        if (!response) {
-          console.log("Failed to fetch data");
-          setError(new Error("Failed to fetch data"));
-          setIsLoading(false);
-          return;
-        }
-        const json = await response.json();
-        const item = schema.safeParse(json);
-        if (!item.success) {
-          console.log("Parsing failed", {path}, item.error);
-          setError(item.error);
-          setIsLoading(false);
-          return;
-        } else {
-          console.log("Parsing success", {path}, item.data);
-          setData(item.data);
-        }
-        setIsLoading(false);
-      // // UTF8 encode the JSON string
-      // const utf8Json = new TextEncoder().encode(JSON.stringify(json));
-      // // Convert the UTF-8 encoded JSON string to a Uint8Array
-      // const uint8Array = new Uint8Array(utf8Json);
-      // // Store the Uint8Array in the cache as string
-      // cache.set(path, uint8Array.toString());
-      } catch (error) {
-        setError(error);
-        setIsLoading(false);
-      }
-    })();
-  },[path, url]);
-
-  return {
-    isLoading,
-    data,
-    error,
-    rawData
-  };
-}
-
 
 export class ATCError extends Error {
   constructor(
@@ -175,6 +21,104 @@ export class ATCError extends Error {
     }
   }
 }
+
+
+interface Pagination {
+  pageSize: number;
+  hasMore: boolean;
+  onLoadMore: (page: number) => void;
+}
+
+export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: (response: any) => T): {
+  isLoading: boolean;
+  data: T | null;
+  error: any;
+  pagination: Pagination | undefined;
+} {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [data, setData] = useState<any | null>(null);
+  const [currentData, setCurrentData] = useState<any | null>(null);
+
+  const [error, setError] = useState<any>(null);
+  const [pagination, setPagination] = useState<Pagination | undefined>(undefined);
+  const previousPath = useRef("");
+
+  const load = async (path: string) => {
+    if (path === previousPath.current) {
+      return;
+    }
+    previousPath.current = path;
+    if (path === undefined || path.length === 0) {
+      setData(null);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const response = await fetchAppStoreConnect(path);
+      if (!response) {
+        setError(new Error("Failed to fetch data"));
+        setIsLoading(false);
+        return;
+      }
+      const json = await response.json();
+      if (json.links !== undefined && json.links.next !== undefined) {
+        setPagination({
+          pageSize: 10,
+          hasMore: true,
+          onLoadMore: (page) => {
+            (async () => {
+              const url = json.links.next.split("https://api.appstoreconnect.apple.com/v1")[1];
+              console.log("PAGE", page);
+              await load(url);
+            })();
+          }
+        });
+      } else {
+        setPagination({
+          pageSize: json.meta.paging.limit,
+          hasMore: false,
+          onLoadMore: (page) => {}
+        });
+      }
+      const item = mapResponse(json);
+      setCurrentData(item); 
+      setIsLoading(false);
+    } catch (error) {
+      console.log("error", {path}, error);
+      setError(error);
+      setIsLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (path !== undefined) {
+      load(path);
+    }
+  }, [path]);
+
+
+  useEffect(() => {
+    if (currentData) {
+      if (data) {
+        if (Array.isArray(data) && Array.isArray(currentData)) {
+          setData(data.concat(currentData) as T);
+        }
+      } else {
+        setData(currentData);
+      }
+    }
+  }, [currentData]);
+
+  return {
+    isLoading,
+    data,
+    error,
+    pagination
+  };
+}
+
+
 
 function decodeBase64(encodedString: string) {
   // Check if we're in a Node.js environment
@@ -234,12 +178,10 @@ export const fetchAppStoreConnect = async (path: string, method: Method = "GET",
     return;
   }
   const response = await fetch("https://api.appstoreconnect.apple.com/v1" + path, {
-    method: method,
     headers: {
       Authorization: "Bearer " + bearerToken,
       "Content-Type": "application/json"
     },
-    body: method === "GET" ? undefined : JSON.stringify(body)
   });
   if (response && !response.ok) {
     const json = await response.json();

@@ -12,7 +12,9 @@ interface UpdateIndividualTestersProps {
 }
 
 export default function IndividualTestersList({ build, app }: UpdateIndividualTestersProps) {
-    const { data, isLoading } = useAppStoreConnectApi(`/builds/${build.build.id}/individualTesters`, betaTestersSchema);
+    const { data, isLoading } = useAppStoreConnectApi(`/builds/${build.build.id}/individualTesters`, (response) => {
+        return betaTestersSchema.safeParse(response).data ?? null;
+    });
     const [testers, setTesters] = useState<BetaTester[]>([]);
 
     useEffect(() => {
@@ -26,7 +28,7 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                 <ActionPanel>
                     <Action.Push title="Add new testers" target={<AddIndividualTester 
                                                                     app={app} 
-                                                                    build={build} 
+                                                                    build={build}
                                                                     didUpdateExistingTesters={(newTesters) => {
                                                                         setTesters(testers.concat(newTesters));
                                                                     }}
@@ -42,7 +44,10 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                 <List.Item
                     key={tester.id}
                     title={tester.attributes.firstName + " " + tester.attributes.lastName}
-                    subtitle={tester.attributes.email}
+                    subtitle={tester.attributes.email || ""}
+                    accessories={[
+                        { text: tester.attributes.betaTesterState }
+                    ]}
                     actions={
                         <ActionPanel>
                             <Action.Push title="Add new testers" target={<AddIndividualTester 

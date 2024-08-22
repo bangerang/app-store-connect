@@ -4,10 +4,11 @@ import { useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
 import { App, appSchemas } from "./Model/schemas";
 import AppItem from "./Components/AppItem";
 import SignIn from "./Components/SignIn";
-import TestInformation from "./Components/TestInformation";
+import BetaGroupsList from "./Components/BetaGroupsList";
 
 export default function Command() {
 const [path, setPath] = useState<string | undefined >(undefined)
+
 const { data, isLoading } = useAppStoreConnectApi(path, (response) => {
   return appSchemas.safeParse(response.data).data;
 });
@@ -27,7 +28,7 @@ const { data, isLoading } = useAppStoreConnectApi(path, (response) => {
           app={app}
           actions={
             <ActionPanel>
-                <Action.Push title="Show Test Information" target={<TestInformation app={app} />} />
+                <Action.Push title="Show Groups" target={<BetaGroupsList app={app} />} />
             </ActionPanel>
           }
         />

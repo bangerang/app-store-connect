@@ -1,12 +1,10 @@
 
-import { List, ActionPanel, Action, Image, open, Icon, Color } from "@raycast/api";
-import { App, AppWithIcon, buildSchemas, Build, BuildWithBetaDetailAndBetaGroups, BetaGroup, betaBuildUsagesSchema } from "../Model/schemas";
-import AppItem from "./AppItem";
+import { List, ActionPanel, Action, Image, Icon, Color } from "@raycast/api";
+import { App, BuildWithBetaDetailAndBetaGroups, BetaGroup, betaBuildUsagesSchema } from "../Model/schemas";
 import BuildDetail from "./BuildDetail";
 import React, { useEffect, useMemo } from "react";
 import { useState } from "react";
 import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
-import InviteUsersFromCSV from "./InviteUsersFromCSV";
 import IndividualTestersList from "./IndividualTestersList";
 
 interface BuildItemProps {
@@ -17,7 +15,9 @@ export default function BuildItem({ build, app }: BuildItemProps) {
     const [betaGroups, setBetaGroups] = useState<BetaGroup[]>([])
     const [externalBuildState, setExternalBuildState] = useState<string | undefined>("");
 
-    const {data: betaBuildUsages } = useAppStoreConnectApi(`/builds/${build.build.id}/metrics/betaBuildUsages`, betaBuildUsagesSchema);
+    const {data: betaBuildUsages } = useAppStoreConnectApi(`/builds/${build.build.id}/metrics/betaBuildUsages`, (response) => {
+        return betaBuildUsagesSchema.safeParse(response.data).data ?? null;
+    });
 
     useEffect(() => {
         setBetaGroups(build.betaGroups);
@@ -139,9 +139,9 @@ export default function BuildItem({ build, app }: BuildItemProps) {
         }
 
         if (item.betaGroups.length === 0) {
-            return getProcessingStatusArray.concat(usage);
+            return usage.concat(getProcessingStatusArray);
         } else {
-            return getProcessingStatusArray.concat(betaGroupsAccessory).concat(usage);
+            return [betaGroupsAccessory].concat(usage).concat(getProcessingStatusArray);
         }
     }
 
@@ -200,7 +200,7 @@ export default function BuildItem({ build, app }: BuildItemProps) {
             actions={
             <ActionPanel>
                 {canInviteTesters() && <>
-                <Action.Push title="Update Beta Groups" target={<BuildDetail 
+                <Action.Push title="Manage Beta Groups" target={<BuildDetail 
                                                                     build={build} 
                                                                     app={app} 
                                                                     groupsDidChange={(groups: BetaGroup[]) => {
@@ -214,7 +214,7 @@ export default function BuildItem({ build, app }: BuildItemProps) {
                                                                     />
                                                                 } 
                                                                 />
-                <Action.Push title="Update Individual Testers" target={<IndividualTestersList app={app} build={build} />} />
+                <Action.Push title="Manage Individual Testers" target={<IndividualTestersList app={app} build={build} />} />
                 </>
         }
             </ActionPanel>

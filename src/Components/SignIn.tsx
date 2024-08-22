@@ -27,6 +27,8 @@ interface SignInProps {
     if (isLoading) {
       return (<Form></Form>);
     }
+
+    LocalStorage.clear()
   
     if (isAuthenticated) {
       return <>{children}</>;

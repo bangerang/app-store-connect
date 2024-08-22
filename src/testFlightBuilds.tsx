@@ -3,7 +3,7 @@ import { LocalStorage, ActionPanel, Form, Action, List, useNavigation, open } fr
 import React, { useEffect, useState, ReactNode } from "react";
 import fs from "fs";
 import { useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
-import { App, AppWithIcon, appSchemas } from "./Model/schemas";
+import { App, appSchemas } from "./Model/schemas";
 import AppItem from "./Components/AppItem";
 import SignIn from "./Components/SignIn";
 import BuildList from "./Components/BuildList";
@@ -11,8 +11,9 @@ import BuildList from "./Components/BuildList";
 export default function Command() {
 const [path, setPath] = useState<string | undefined >(undefined)
 
-const { data, isLoading } = useAppStoreConnectApi(path, appSchemas);
-
+const { data, isLoading } = useAppStoreConnectApi(path, (response) => {
+  return appSchemas.safeParse(response.data).data;
+});
 
   return (
     <SignIn didSignIn={() => {

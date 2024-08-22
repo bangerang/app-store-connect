@@ -1,60 +1,26 @@
-import exp from 'constants';
-import { version } from 'os';
 import { z } from 'zod';
 
 
-  export const appSchema = z.object({
-    type: z.string(),
-    id: z.string(),
-    attributes: z.object({
-      name: z.string(),
-      bundleId: z.string(),
-      sku: z.string(),
-      primaryLocale: z.string(),
-      isOrEverWasMadeForKids: z.boolean(),
-      subscriptionStatusUrl: z.string().nullable(),
-      subscriptionStatusUrlVersion: z.string().nullable(),
-      subscriptionStatusUrlForSandbox: z.string().nullable(),
-      subscriptionStatusUrlVersionForSandbox: z.string().nullable(),
-      contentRightsDeclaration: z.string().nullable(),
-    }),
-  });
+export const appSchema = z.object({
+  type: z.string(),
+  id: z.string(),
+  attributes: z.object({
+    name: z.string(),
+    bundleId: z.string(),
+    sku: z.string(),
+    primaryLocale: z.string(),
+    isOrEverWasMadeForKids: z.boolean(),
+    subscriptionStatusUrl: z.string().nullable(),
+    subscriptionStatusUrlVersion: z.string().nullable(),
+    subscriptionStatusUrlForSandbox: z.string().nullable(),
+    subscriptionStatusUrlVersionForSandbox: z.string().nullable(),
+    contentRightsDeclaration: z.string().nullable(),
+  }),
+});
 export const appSchemas = z.array(appSchema);
 export type App = z.infer<typeof appSchema>;
 
-
-const iconAssetTokenSchema = z.object({
-  templateUrl: z.string().url(),
-  width: z.number().int().positive(),
-  height: z.number().int().positive(),
-});
-
-const attributesSchema = z.object({
-  version: z.string(),
-  uploadedDate: z.string(),
-  expirationDate: z.string(),
-  expired: z.boolean(),
-  minOsVersion: z.string(),
-  lsMinimumSystemVersion: z.string().nullable(),
-  computedMinMacOsVersion: z.string().nullable(),
-  computedMinVisionOsVersion: z.string().nullable(),
-  iconAssetToken: iconAssetTokenSchema,
-  processingState: z.enum(['PROCESSING', 'FAILED', 'INVALID', 'VALID']), 
-  buildAudienceType: z.enum(['APP_STORE_ELIGIBLE',
-    'APP_STORE_ELIGIBLE_FOR_MAC_APP_STORE'
-  ]),
-  usesNonExemptEncryption: z.boolean().nullable(),
-});
-
-
 export const buildSchema = z.object({
-  type: z.literal('builds'),
-  id: z.string(),
-  attributes: attributesSchema,
-});
-export const buildSchemas = z.array(buildSchema);
-
-export const buildSchemaWithBetaGroups = z.object({
   type: z.literal('builds'),
   id: z.string(),
   attributes: z.object({
@@ -72,6 +38,11 @@ export const buildSchemaWithBetaGroups = z.object({
       'APP_STORE_ELIGIBLE_FOR_MAC_APP_STORE'
     ]),
   }),
+});
+export const buildSchemas = z.array(buildSchema);
+export type Build = z.infer<typeof buildSchema>;
+
+export const buildSchemaWithBetaGroups = buildSchema.extend({
   relationships: z.object({
     betaGroups: z.object({
       data: z.array(z.object({
@@ -105,10 +76,6 @@ export const betaGroupSchema = z.object({
 export const betaGroupsSchema = z.array(betaGroupSchema);
 
 export type BetaGroup = z.infer<typeof betaGroupSchema>;
-
-export type Build = z.infer<typeof buildSchema>;
-
-export type AppWithIcon = App & { icon: string };
 
 export const appStoreVersionSchema = z.object({
   type: z.literal('appStoreVersions'),
@@ -163,13 +130,13 @@ export const buildWithBetaDetailAndBetaGroupsScehma = z.object({
 
 export type BuildWithBetaDetailAndBetaGroups = z.infer<typeof buildWithBetaDetailAndBetaGroupsScehma>;
 
-const apiResponseSchema = z.object({
+const buildSchemaWithBetaGroupsSchema = z.object({
   data: z.array(buildSchemaWithBetaGroups),
   included: z.array(z.union([buildBetaDetailSchema, z.unknown()])),
 });
 
 
-export const buildsWithBetaDetailSchema = apiResponseSchema.transform((response) => {
+export const buildsWithBetaDetailSchema = buildSchemaWithBetaGroupsSchema.transform((response) => {
   return response.data.map((build) => {
     return {
       build: build,
@@ -180,6 +147,32 @@ export const buildsWithBetaDetailSchema = apiResponseSchema.transform((response)
     } as BuildWithBetaDetailAndBetaGroups;
   });
 });
+
+
+export const betaTesterUsageSchema = z.object({
+  type: z.literal('appsBetaTesterUsages'),
+  dataPoints: z.array(z.object({
+    start: z.string(),
+    end: z.string(),
+    values: z.object({
+      crashCount: z.number(),
+      sessionCount: z.number(),
+      feedbackCount: z.number(),
+    })
+  })),
+  dimensions: z.object({
+    betaTesters: z.object({
+      data: z.object({
+        type: z.string(),
+        id: z.string(),
+      })
+    })
+  })
+});
+
+export const betaTesterUsageSchemas = z.array(betaTesterUsageSchema);
+
+export type BetaTesterUsage = z.infer<typeof betaTesterUsageSchema>;
 
 export const betaBuildUsageSchema = z.object({
   type: z.literal('betaBuildUsages'),
@@ -196,7 +189,7 @@ export const betaBuildUsageSchema = z.object({
   }))
 });
 
-const betaTesterSchema = z.object({
+export const betaTesterSchema = z.object({
   type: z.literal('betaTesters'),
   id: z.string(),
   attributes: z.object({
@@ -218,7 +211,10 @@ export const userSchema = z.object({
     roles: z.array(z.string()),
     allAppsVisible: z.boolean(),
     provisioningAllowed: z.boolean(),
-  }),
+  })
+});
+
+export const userSchemaWithVisibleApps = userSchema.extend({
   relationships: z.object({
     visibleApps: z.object({
       data: z.array(z.object({
@@ -228,6 +224,8 @@ export const userSchema = z.object({
     })
   })
 });
+
+export type UserWithVisibleApps = z.infer<typeof userSchemaWithVisibleApps>;
 
 export const betaAppReviewDetailSchema = z.object({
   type: z.literal('betaAppReviewDetails'),

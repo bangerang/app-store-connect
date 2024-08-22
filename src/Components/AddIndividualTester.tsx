@@ -14,10 +14,18 @@ interface Props {
 type SubmitType = "UPDATE_WHAT_TO_TEST" | "SUBMIT_FOR_BETA_REVIEW" | "ADD_EXISTING_TESTERS" | "ADD_NEW_TESTERS" | "ADD_FROM_CSV";
 
 export default function AddIndividualTester({ build, app, didUpdateExistingTesters, didUpdateNewTesters }: Props) {
-    const { data, isLoading } = useAppStoreConnectApi(`/builds/${build.build.id}/individualTesters`, betaTestersSchema);
+    const { data, isLoading } = useAppStoreConnectApi(`/builds/${build.build.id}/individualTesters`, (response) => {
+        return betaTestersSchema.safeParse(response.data).data;
+    });
     
-    const { data: allUsers, isLoading: isLoadingUsers } = useAppStoreConnectApi(`/betaTesters?filter[apps]=${app.id}`, betaTestersSchema);
-    const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, betaBuildLocalizationsSchema);
+    const { data: allUsers, isLoading: isLoadingUsers } = useAppStoreConnectApi(`/betaTesters?filter[apps]=${app.id}`, (response) => {
+        return betaTestersSchema.safeParse(response.data).data;
+    });
+    const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, (response) => {
+        return betaBuildLocalizationsSchema.safeParse(response.data).data ?? [];
+    });
+    
+    
     const [testersIDs, setTestersIDs] = useState<string[]>([]);
     const [allUsersFromApp, setAllUsersFromApp] = useState<BetaTester[]>([]);
     const [whatToTestError, setWhatToTestError] = useState<string | undefined>();
@@ -338,7 +346,6 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
 }
 
 function validateWhatToTest(whatToTest: string | undefined): boolean {
-    console.log({whatToTest})
     if (!whatToTest) {
         return false;
     }

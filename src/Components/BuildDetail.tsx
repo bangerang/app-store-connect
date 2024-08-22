@@ -14,8 +14,12 @@ interface BuildDetailProps {
 type SubmitType = "UPDATE_WHAT_TO_TEST" | "SUBMIT_FOR_BETA_REVIEW" | "ADD_GROUPS_TO_BUILD" | "REMOVE_GROUPS_FROM_BUILD";
 
 export default function BuildDetail({ build, app, groupsDidChange, betaStateDidChange }: BuildDetailProps) {
-    const { data: betaGroups, isLoading: isLoadingBetaGroups } = useAppStoreConnectApi(`/betaGroups?filter[app]=${app.id}`, betaGroupsSchema);
-    const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, betaBuildLocalizationsSchema);
+    const { data: betaGroups, isLoading: isLoadingBetaGroups } = useAppStoreConnectApi(`/betaGroups?filter[app]=${app.id}`, (response) => {
+        return betaGroupsSchema.safeParse(response.data).data ?? null;
+    });
+    const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, (response) => {
+        return betaBuildLocalizationsSchema.safeParse(response.data).data ?? null;
+    });
     const [usedGroups, setUsedGroups] = useState<BetaGroup[]>([]);
     const [previousUsedGroups, setPreviousUsedGroups] = useState<BetaGroup[] | undefined>(undefined); 
     const [usedGroupsIDs, setUsedGroupIDs] = useState<string[]>([]);

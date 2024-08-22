@@ -27,11 +27,17 @@
       "title": "Test information",
       "description": "Test information",
       "mode": "view"
+    },
+    {
+      "name": "showGroups",
+      "title": "Show beta groups",
+      "description": "Show beta groups",
+      "mode": "view"
     }
   ],
   "dependencies": {
     "@raycast/api": "^1.77.0",
-    "@raycast/utils": "^1.16.1",
+    "@raycast/utils": "^1.16.4",
     "node-app-store-connect-api": "^5.0.4",
     "zod": "^3.23.8"
   },

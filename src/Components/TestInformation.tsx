@@ -25,9 +25,15 @@ interface TestInformationFormValues {
     currentLicenseAgreement: string;
 }
 export default function TestInformation({ app }: TestInformationProps) {
-    const { data: reviewDetails, isLoading: isLoadingReviewDetails } = useAppStoreConnectApi(`/betaAppReviewDetails?filter[app]=${app.id}&limit=40`, betaAppReviewDetailsSchema);
-    const { data: appLocalizations, isLoading: isLoadingAppLocalizations } = useAppStoreConnectApi(`/betaAppLocalizations?filter[app]=${app.id}&limit=40`, betaAppLocalizationsSchema);
-    const { data: licenseAgreements, isLoading: isLoadingLicenseAgreements } = useAppStoreConnectApi(`/betaLicenseAgreements?filter[app]=${app.id}&limit=40`, betaLicenseAgreementsSchema);
+    const { data: reviewDetails, isLoading: isLoadingReviewDetails } = useAppStoreConnectApi(`/betaAppReviewDetails?filter[app]=${app.id}&limit=40`, (response) => {
+        return betaAppReviewDetailsSchema.safeParse(response).data ?? null;
+    });
+    const { data: appLocalizations, isLoading: isLoadingAppLocalizations } = useAppStoreConnectApi(`/betaAppLocalizations?filter[app]=${app.id}&limit=40`, (response) => {
+        return betaAppLocalizationsSchema.safeParse(response).data ?? null;
+    });
+    const { data: licenseAgreements, isLoading: isLoadingLicenseAgreements } = useAppStoreConnectApi(`/betaLicenseAgreements?filter[app]=${app.id}&limit=40`, (response) => {
+        return betaLicenseAgreementsSchema.safeParse(response).data ?? null;
+    });
     const [submitIsLoading, setSubmitIsLoading] = useState(false);
 
     const { handleSubmit, itemProps, setValue } = useForm<TestInformationFormValues>({
