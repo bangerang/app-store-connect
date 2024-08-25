@@ -1,6 +1,8 @@
 import { LocalStorage, ActionPanel, Form, Action } from "@raycast/api";
 import { useEffect, useState, ReactNode } from "react";
 import fs from "fs";
+import { fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
+import { presentError } from "../Utils/utils";
 
 interface SignInProps {
     children: ReactNode;
@@ -10,11 +12,12 @@ interface SignInProps {
  export default function SignIn({ children, didSignIn }: SignInProps) {
     const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [isCheckConnection, setIsCheckConnection] = useState(false);
+
     useEffect(() => {
       (async () => {
         const apiKey = await LocalStorage.getItem<string>("apiKey");
         if (apiKey === undefined) {
-            console.log("apiKey is undefined")
           setIsAuthenticated(false);
         } else {
           setIsAuthenticated(true);
@@ -23,52 +26,65 @@ interface SignInProps {
         setIsLoading(false);
       })();
     }, [didSignIn]);
-  
+
     if (isLoading) {
       return (<Form></Form>);
     }
-
-    LocalStorage.clear()
   
     if (isAuthenticated) {
       return <>{children}</>;
     } else {
       return (
         <Form
-        actions={
-          <ActionPanel>
-            <Action.SubmitForm
-              title="Submit"
-              onSubmit={(values: { privateKey: string[], apiKey: string, issuerID: string }) => {
-                const file = values.privateKey[0];
-                if (!fs.existsSync(file) || !fs.lstatSync(file).isFile()) {
-                  return false;
-                }
-                if (values.apiKey === undefined) {
-                  return false;
-                }
-                if (values.issuerID === undefined) {
-                  return false;
-                }
-                (async () => {
-                  // Read the contents of the private key file
-                  const privateKeyContent = fs.readFileSync(file, 'utf8');
-                  // Encode the private key content
-                  const encodedPrivateKey = base64EncodePrivateKey(privateKeyContent);
-                  
-                  await LocalStorage.setItem("apiKey", values.apiKey);
-                  await LocalStorage.setItem("privateKey", encodedPrivateKey);
-                  await LocalStorage.setItem("issuerID", values.issuerID);
-                  didSignIn()
-                  setIsAuthenticated(true)
-                })()
-              }}
-            />
+          isLoading={isCheckConnection}
+          actions={
+            <ActionPanel>
+              <Action.SubmitForm
+                title="Submit"
+                onSubmit={(values: { privateKey: string[], apiKey: string, issuerID: string }) => {
+                  const file = values.privateKey[0];
+                  if (!fs.existsSync(file) || !fs.lstatSync(file).isFile()) {
+                    return false;
+                  }
+                  if (values.apiKey === undefined) {
+                    return false;
+                  }
+                  if (values.issuerID === undefined) {
+                    return false;
+                  }
+                  (async () => {
+                    setIsCheckConnection(true);
+                    // Read the contents of the private key file
+                    const privateKeyContent = fs.readFileSync(file, 'utf8');
+                    // Encode the private key content
+                    const encodedPrivateKey = base64EncodePrivateKey(privateKeyContent);
+                    
+                    console.log("encodedPrivateKey", encodedPrivateKey);
+                    console.log("apiKey", values.apiKey);
+                    console.log("issuerID", values.issuerID);
+                    await LocalStorage.setItem("apiKey", values.apiKey);
+                    await LocalStorage.setItem("privateKey", encodedPrivateKey);
+                    await LocalStorage.setItem("issuerID", values.issuerID);
+                    try {
+                      await fetchAppStoreConnect("/apps")
+                      didSignIn()
+                      setIsAuthenticated(true)
+                    } catch (error) {
+                      LocalStorage.removeItem("apiKey");
+                      LocalStorage.removeItem("privateKey");
+                      LocalStorage.removeItem("issuerID");
+                      presentError(error);
+                    }
+                    setIsCheckConnection(false);
+                    setIsLoading(false);
+                  })()
+                }}
+              />
           </ActionPanel>
         }
       >
-        <Form.TextField id="issuerID" placeholder="Issuer ID" defaultValue="a35be265-0189-439c-9434-e2e89ebb50ef" />
-        <Form.TextField id="apiKey" placeholder="API Key" defaultValue="NLXQA3HKF9" />
+        <Form.TextField id="issuerID" placeholder="Issuer ID" defaultValue="69a6de7d-dfd1-47e3-e053-5b8c7c11a4d1" />
+        <Form.TextField id="apiKey" placeholder="API Key" defaultValue="JASMSH45PH" />
         <Form.FilePicker id="privateKey" title="Private key" allowMultipleSelection={false} />
       </Form>
       );

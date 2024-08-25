@@ -1,5 +1,5 @@
 import { ActionPanel, Form, Action, showToast, Toast, Icon, Color } from "@raycast/api";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Build, App, betaGroupsSchema, buildSchemasWithBetaGroups, BetaGroup, betaBuildLocalizationsSchema, BuildWithBetaDetailAndBetaGroups, buildsWithBetaDetailSchema, AppStoreVersion } from "../Model/schemas";
 import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
 import { presentError } from "../Utils/utils";
@@ -17,17 +17,17 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     const { data: betaGroups, isLoading: isLoadingBetaGroups } = useAppStoreConnectApi(`/betaGroups?filter[app]=${app.id}`, (response) => {
         return betaGroupsSchema.safeParse(response.data).data ?? null;
     });
+    const usedGroups = build.betaGroups;
+    
     const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, (response) => {
         return betaBuildLocalizationsSchema.safeParse(response.data).data ?? null;
     });
-    const [usedGroups, setUsedGroups] = useState<BetaGroup[]>([]);
-    const [previousUsedGroups, setPreviousUsedGroups] = useState<BetaGroup[] | undefined>(undefined); 
+
     const [usedGroupsIDs, setUsedGroupIDs] = useState<string[]>([]);
     const [currentWhatToTest, setCurrentWhatToTest] = useState<string>("");
     const [whatToTestError, setWhatToTestError] = useState<string | undefined>();
     const [submitIsLoading, setSubmitIsLoading] = useState<boolean>(false);
-    const [removedGroups, setRemovedGroups] = useState<BetaGroup[]>([]);
-    const [addedGroups, setAddedGroups] = useState<BetaGroup[]>([]);
+    const previousUsedGroups = useRef<BetaGroup[] | undefined>(undefined);
 
     function dropWhatToTestErrorIfNeeded() {
         if (whatToTestError !== undefined) {            
@@ -36,31 +36,11 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     }
 
     useEffect(() => {
-        if (betaGroups !== null && betaGroups.length > 0) {
-            build.betaGroups.forEach(betaGroup => {
-                betaGroups.forEach(bg => {
-                    if (bg.id === betaGroup.id) {
-                        setUsedGroups(prev => [...prev, bg]);
-                        setUsedGroupIDs(prev => [...prev, bg.id]);
-                    }
-                });
-            });
+        if (usedGroups && betaGroups) {
+            setUsedGroupIDs(usedGroups.map(bg => bg.id));
         }
-    }, [build, betaGroups]);
-
-    useEffect(() => {
-        if (betaGroups === null || usedGroupsIDs === null) {
-            return;
-        }
-        const newGroups = betaGroups?.filter(bg => usedGroupsIDs.includes(bg.id));
-        if (previousUsedGroups !== undefined) {
-            setRemovedGroups(previousUsedGroups?.filter(bg => newGroups?.find(bg2 => bg2.id === bg.id) === undefined));
-            setAddedGroups(newGroups?.filter(bg => previousUsedGroups?.find(bg2 => bg2.id === bg.id) === undefined));
-        }
-        setPreviousUsedGroups(usedGroups);
-        setUsedGroups(newGroups);
-        dropWhatToTestErrorIfNeeded();
-    }, [usedGroupsIDs, betaGroups]);
+    }, [usedGroups, betaGroups]);
+    
 
     useEffect(() => {
         // TODO: Handle localizations
@@ -76,41 +56,23 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
 
 
     const getSubmitTitle = () => {
-        const types = getSubmitTypes();
-        if (types.find(type => type === "SUBMIT_FOR_BETA_REVIEW")) {
+        const hasExternalGroups = usedGroupsIDs.find(bg => {
+            return !betaGroups?.find(bg2 => bg2.id === bg)?.attributes.isInternalGroup;
+        });
+        const needsApproval = build.buildBetaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION" && hasExternalGroups;
+        if (needsApproval) {
             return "Submit for beta review";
         } else {
             return "Update"
         }
     };
 
-    const getSubmitTypes = (): SubmitType[] => {
-        const containsExternalGroups = usedGroups.find(bg => {
-            return !bg.attributes.isInternalGroup;
-        });
-        if (build.buildBetaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION" && containsExternalGroups) {
-            return ["SUBMIT_FOR_BETA_REVIEW"];
-        }
-        const types: SubmitType[] = [];
-        if (betaBuildLocalizations && betaBuildLocalizations.length > 0 && currentWhatToTest !== betaBuildLocalizations[0].attributes.whatsNew) {
-            types.push("UPDATE_WHAT_TO_TEST");
-        }
-        if (removedGroups.length > 0) {
-            types.push("REMOVE_GROUPS_FROM_BUILD");
-        }
-        if (addedGroups.length > 0) {
-            types.push("ADD_GROUPS_TO_BUILD");
-        }
-        return types;
-    };
-
     const updateWhatToTest = async () => {
-        setSubmitIsLoading(true);
         if (betaBuildLocalizations === null || betaBuildLocalizations.length === 0) {
-            return;
+            return false;
         }
         if (currentWhatToTest === betaBuildLocalizations[0].attributes.whatsNew) {
-            return;
+            return false;
         }
         const response = await fetchAppStoreConnect(`/betaBuildLocalizations/${betaBuildLocalizations[0].id}`, "PATCH", {
             data: {
@@ -125,6 +87,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
             const error = constructError(response, "Could not update what to test");
             throw error;
         }
+        return true;
     };
 
     const constructError =  async(response: { text: () => Promise<string> }, fallbackMessage: string) => {
@@ -140,63 +103,83 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     };
 
     const submitForBetaReview = async () => {
-        setSubmitIsLoading(true);
-        if (betaBuildLocalizations === null || betaBuildLocalizations.length === 0 || betaGroups === null) {
-            return;
+        const containsExternalGroups = usedGroupsIDs.find(bg => {
+            const betaGroup = betaGroups?.find(bg2 => {
+                return bg2.id === bg;
+            });
+            return !betaGroup?.attributes.isInternalGroup;
+        });
+        if (build.buildBetaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION" && containsExternalGroups) {
+            const response = await fetchAppStoreConnect("/betaAppReviewSubmissions", "POST", {
+                data: {
+                    type: "betaAppReviewSubmissions",
+                    relationships: {
+                        build: {
+                            data: {
+                                type: "builds",
+                                id: build.build.id
+                            }
+                        }
+                    }
+                }
+            });
+            console.log("response", response);
+            if (response && !response.ok) {
+                const error = await constructError(response, "Could not submit for beta review");
+                throw error;
+            }
+            return true;
+        } else {
+            return false;
         }
-        const response = await fetchAppStoreConnect(`/betaAppReviewSubmissions`, "POST", {
-            data: {
-                type: "betaAppReviewSubmissions",
-                relationships: {
-                    build: {
-                        data: {
+    };
+
+    const addGroupsToBuild = async () => {
+        const newGroupIDs = usedGroupsIDs.filter(bg => !usedGroups?.find(bg2 => bg2.id === bg)); 
+        const newGroups = betaGroups?.filter(bg => newGroupIDs.find(bg2 => bg2 === bg.id));
+        if (newGroups) {
+            for (const group of newGroups) {
+                const response = await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds`, "POST", {
+                    data: [
+                        {
                             type: "builds",
                             id: build.build.id
                         }
-                    }
-                } 
+                    ]
+                });
+                if (response && !response.ok) {
+                    console.log("response", response);
+                    const error = constructError(response, "Could not add group to build");
+                    throw error;
+                }
+
             }
-        });
-        if (response && !response.ok) {
-            const error = await constructError(response, "Could not submit for beta review");
-            throw error;
+            return true;
         }
+        return false;
     };
 
-    const addGroupsToBuild = async (newGroups: BetaGroup[]) => {
-        setSubmitIsLoading(true);
-        for (const group of newGroups) {
-            const response = await fetchAppStoreConnect(`/builds/${build.build.id}/relationships/betaGroups`, "POST", {
-                data: [
-                    {
-                        type: "betaGroups",
-                        id: group.id
-                    }
-                ]
-            });
-            if (response && !response.ok) {
-                const error = constructError(response, "Could not add group to build");
-                throw error;
+    const removeGroupsFromBuild = async () => {
+        const removedGroups = usedGroups.filter(bg => !usedGroupsIDs.find(bg2 => bg2 === bg.id));
+        if (removedGroups) {
+            for (const group of removedGroups) {
+                console.log("removing group", group);
+                const response = await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds`, "DELETE", {
+                    data: [
+                        {
+                            type: "builds",
+                            id: build.build.id
+                        }
+                    ]
+                });
+                if (response && !response.ok) {
+                    const error = constructError(response, "Could not remove group from build");
+                    throw error;
+                }
             }
+            return true;
         }
-    };
-
-    const removeGroupsFromBuild = async (removedGroups: BetaGroup[]) => {
-        setSubmitIsLoading(true);
-        for (const group of removedGroups) {
-            const response = await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds`, "DELETE", {
-                data: [
-                    {
-                        type: "builds",
-                        id: build.build.id
-                    }
-                ]
-            });
-            if (response && !response.ok) {
-                const error = constructError(response, "Could not remove group from build");
-                throw error;
-            }
-        }
+        return false;
     };
 
     return (
@@ -204,71 +187,47 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
             actions={
                 <ActionPanel>
                     <Action.SubmitForm title={getSubmitTitle()} onSubmit={() => {
-                        if (validateWhatToTest(currentWhatToTest, usedGroups)) {
-                            const types = getSubmitTypes();
-                            if (types.length === 1 && types[0] === "SUBMIT_FOR_BETA_REVIEW") {
-                                (async () => {
-                                    try {
-                                        if (betaGroups === null) {
-                                            return;
-                                        }
-                                        await updateWhatToTest();
-                                        if (addedGroups.length > 0) {
-                                            await addGroupsToBuild(addedGroups);
-                                            groupsDidChange(usedGroups);
-                                        }
-                                        if (removedGroups.length > 0) {
-                                            await removeGroupsFromBuild(removedGroups);
-                                            groupsDidChange(usedGroups);
-                                        }
-                                        await submitForBetaReview();
+                        if (validateWhatToTest(currentWhatToTest, usedGroups ?? [])) {
+                            (async () => {
+                                try {
+                                    if (betaGroups === null) {
+                                        return;
+                                    }
+                                    setSubmitIsLoading(true);
+                                    await updateWhatToTest();
+                                    const submitted = await submitForBetaReview();
+                                    const added = await addGroupsToBuild();
+                                    if (added) {
+                                        console.log("added");
+                                        groupsDidChange(usedGroups ?? []);
+                                    }
+                                    
+                                    const removed = await removeGroupsFromBuild();
+                                    if (removed) {
+                                        groupsDidChange(usedGroups ?? []);
+                                    }
+                                    if (submitted) {
                                         betaStateDidChange("SUBMITTED_FOR_BETA_REVIEW");
-                                        setSubmitIsLoading(false);
                                         showToast({
                                             style: Toast.Style.Success,
                                             title: "Success!",
                                             message: "Submitted for beta review",
                                         });
-                                    } catch (error) {
-                                        presentError(error);
-                                        setSubmitIsLoading(false);
-                                    }
-                                })();
-                            } else {
-                                (async () => {
-                                    try {
-                                        for (let i = 0; i < types.length; i++) {
-                                            const type = types[i];
-                                            switch (type) {
-                                                case "UPDATE_WHAT_TO_TEST":
-                                                    await updateWhatToTest();
-                                                break;
-                                                case "ADD_GROUPS_TO_BUILD":
-                                                    if (addedGroups.length > 0) {
-                                                        await addGroupsToBuild(addedGroups);
-                                                        groupsDidChange(usedGroups);
-                                                    }
-                                                break;
-                                                case "REMOVE_GROUPS_FROM_BUILD":
-                                                    if (removedGroups.length > 0) {
-                                                        await removeGroupsFromBuild(removedGroups);
-                                                        groupsDidChange(usedGroups);
-                                                    }
-                                                break;
-                                            }
-                                        }
-                                        setSubmitIsLoading(false);
+                                    } else {
                                         showToast({
                                             style: Toast.Style.Success,
                                             title: "Success!",
-                                            message: "Updated build",
+                                            message: "Build updated",
                                         });
-                                    } catch (error) {
-                                        presentError(error);
-                                        setSubmitIsLoading(false);
                                     }
-                                })();
-                            }
+                                    setSubmitIsLoading(false);
+
+                                } catch (error) {
+                                    console.log("presentError");
+                                    presentError(error);
+                                    setSubmitIsLoading(false);
+                                }
+                            })();
                         } else {
                             setWhatToTestError("You must specify what to test");
                         }

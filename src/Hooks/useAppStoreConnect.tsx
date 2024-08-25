@@ -69,7 +69,6 @@ export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: 
           onLoadMore: (page) => {
             (async () => {
               const url = json.links.next.split("https://api.appstoreconnect.apple.com/v1")[1];
-              console.log("PAGE", page);
               await load(url);
             })();
           }
@@ -154,8 +153,6 @@ const getBearerToken = async () => {
   const issuerId = await LocalStorage.getItem<string>("issuerID");
   const encoded = await LocalStorage.getItem<string>("privateKey");
   if (!apiKey || !issuerId || !encoded) {
-      // setError(new Error("Missing API credentials"));
-      // setIsLoading(false);
       showToast(Toast.Style.Failure, "Missing API credentials");
       return;
   }
@@ -173,21 +170,25 @@ const getBearerToken = async () => {
 }
 
 export const fetchAppStoreConnect = async (path: string, method: Method = "GET", body?: any) => {
+  console.log("fetchAppStoreConnect", {path, method, body});
   const bearerToken = await getBearerToken();
   if (!bearerToken) {
     return;
   }
   const response = await fetch("https://api.appstoreconnect.apple.com/v1" + path, {
+    method: method,
     headers: {
       Authorization: "Bearer " + bearerToken,
       "Content-Type": "application/json"
     },
+    body: body ? JSON.stringify(body) : undefined
   });
   if (response && !response.ok) {
     const json = await response.json();
     if ("errors" in json) {
       const errors = json.errors;
       if (errors.length > 0) {
+        console.log("errors", {path}, errors);
         throw new ATCError(errors[0].title, errors[0].detail);
       } else {
         throw new ATCError("Oh no!", "Something went wrong, error code: " + response.status);
