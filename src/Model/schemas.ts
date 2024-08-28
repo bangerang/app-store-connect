@@ -117,7 +117,7 @@ export const buildBetaDetailSchema = z.object({
   id: z.string(),
   attributes: z.object({
     internalBuildState: z.enum(['PROCESSING', 'PROCESSING_EXCEPTION', 'MISSING_EXPORT_COMPLIANCE', 'READY_FOR_BETA_TESTING', 'IN_BETA_TESTING', 'EXPIRED', 'IN_EXPORT_COMPLIANCE_REVIEW']).optional(),
-    externalBuildState: z.enum(['PROCESSING', 'PROCESSING_EXCEPTION', 'MISSING_EXPORT_COMPLIANCE', 'READY_FOR_BETA_TESTING', 'IN_BETA_TESTING', 'EXPIRED', 'READY_FOR_BETA_SUBMISSION', 'IN_EXPORT_COMPLIANCE_REVIEW', 'WAITING_FOR_BETA_REVIEW', 'IN_BETA_REVIEW', 'BETA_REJECTED', 'BETA_APPROVED']).optional(),
+    externalBuildState: z.enum(['PROCESSING', 'PROCESSING_EXCEPTION', 'MISSING_EXPORT_COMPLIANCE', 'READY_FOR_BETA_TESTING', 'IN_BETA_TESTING', 'EXPIRED', 'READY_FOR_BETA_SUBMISSION', 'IN_EXPORT_COMPLIANCE_REVIEW', 'WAITING_FOR_BETA_REVIEW', 'IN_BETA_REVIEW', 'BETA_REJECTED', 'BETA_APPROVED', 'SUBMITTED_FOR_BETA_REVIEW', 'REMOVED_FROM_BETA_REVIEW']).optional(),
   }),
 });
 
@@ -214,6 +214,34 @@ export const userSchema = z.object({
   })
 });
 
+export const userInvitationsSchema = z.object({
+  type: z.literal('userInvitations'),
+  id: z.string(),
+  attributes: z.object({
+    email: z.string(),
+    firstName: z.string(),
+    lastName: z.string(),
+    expirationDate: z.string(),
+    roles: z.array(z.string()),
+    allAppsVisible: z.boolean().nullable(),
+    provisioningAllowed: z.boolean(),
+  }),
+  relationships: z.object({
+    visibleApps: z.object({
+      data: z.array(z.object({
+        type: z.string(),
+        id: z.string(),
+      })).optional()
+    })
+  }),
+  links: z.object({
+    self: z.string(),
+  })
+});
+
+export const userInvitationsSchemas = z.array(userInvitationsSchema);
+
+export type UserInvitation = z.infer<typeof userInvitationsSchema>;
 export const userSchemaWithVisibleApps = userSchema.extend({
   relationships: z.object({
     visibleApps: z.object({

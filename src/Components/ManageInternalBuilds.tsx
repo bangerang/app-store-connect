@@ -26,7 +26,6 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
     const [currentBuildsPath, setCurrentBuildsPath] = useState<string | undefined>(undefined);
 
     const { data: builds, isLoading: isLoadingApp, error: errorApp } = useAppStoreConnectApi(buildsPath, (response: any) => {
-        console.log("response", response);
         return buildsWithBetaDetailSchema.parse(response);
     });
     const { data: currentBuilds, isLoading: isLoadingCurrentBuilds, error: errorCurrentBuilds } = useAppStoreConnectApi(currentBuildsPath, (response: any) => {
@@ -36,8 +35,6 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
     const { data: preReleaseVersions, isLoading: isLoadingPreReleaseVersions } = useAppStoreConnectApi(`/preReleaseVersions?filter[app]=${app.id}&sort=-version&fields[preReleaseVersions]=builds,version,platform&limit=5`, (response) => {
         return preReleaseVersionSchemas.safeParse(response.data).data ?? null;
     });
-
-    console.log("preReleaseVersions", preReleaseVersions);
 
     const [versions, setVersions] = useState<VersionWithPlatform[] | undefined>(undefined);
     
@@ -93,13 +90,46 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
         }
     }
 
+    const submitForBetaReview = async () => {
+        const builds = currentBuilds?.filter((build) => buildIDs?.includes(build.build.id));
+        if (builds === undefined || builds.length === 0) {
+            return;
+        }
+        for (const build of builds) {
+            await fetchAppStoreConnect(`/betaAppReviewSubmissions`, "POST", {
+                data: {
+                    type: "betaAppReviewSubmissions",
+                    relationships: {
+                        build: {
+                            data: {
+                                type: "builds",
+                                id: build.build.id
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    const submitTitle = () => {
+        const builds = currentBuilds?.filter((build) => buildIDs?.includes(build.build.id));
+        for (const build of builds ?? []) {
+            const needsApproval = build.buildBetaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION"
+            if (needsApproval && !group.attributes.isInternalGroup) {
+                return "Submit for beta review";
+            }
+        }
+        return "Update";
+    };
+
     return (
         <Form 
             isLoading={isLoadingApp || isLoadingPreReleaseVersions || isLoadingCurrentBuilds || submitIsLoading}
             actions={
                 <ActionPanel>
                     <Action.SubmitForm 
-                        title="Update build" 
+                        title={submitTitle()}
                         onSubmit={(values: { builds: string[] }) => {
                             setSubmitIsLoading(true);
                             (async () => {
@@ -126,6 +156,7 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
                                         });
                                     }
                                 }
+                                await submitForBetaReview();
                                 setSubmitIsLoading(false);
                                 showToast({
                                     style: Toast.Style.Success,

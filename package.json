@@ -33,6 +33,12 @@
       "title": "Show beta groups",
       "description": "Show beta groups",
       "mode": "view"
+    },
+    {
+      "name": "teamMembers",
+      "title": "Team members",
+      "description": "Show team members",
+      "mode": "view"
     }
   ],
   "dependencies": {

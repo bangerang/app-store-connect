@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, confirmAlert, Alert} from "@raycast/api";
+import { List, ActionPanel, Action, confirmAlert, Alert, Icon} from "@raycast/api";
 import { fetchAppStoreConnect, useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
 import { App, BuildWithBetaDetailAndBetaGroups, betaTestersSchema } from "../Model/schemas";
 import { BetaTester } from "../Model/schemas";
@@ -13,7 +13,7 @@ interface UpdateIndividualTestersProps {
 
 export default function IndividualTestersList({ build, app }: UpdateIndividualTestersProps) {
     const { data, isLoading } = useAppStoreConnectApi(`/builds/${build.build.id}/individualTesters`, (response) => {
-        return betaTestersSchema.safeParse(response).data ?? null;
+        return betaTestersSchema.safeParse(response.data).data ?? null;
     });
     const [testers, setTesters] = useState<BetaTester[]>([]);
 
@@ -26,7 +26,7 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
             isLoading={isLoading}
             actions={
                 <ActionPanel>
-                    <Action.Push title="Add new testers" target={<AddIndividualTester 
+                    <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester 
                                                                     app={app} 
                                                                     build={build}
                                                                     didUpdateExistingTesters={(newTesters) => {
@@ -50,7 +50,7 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                     ]}
                     actions={
                         <ActionPanel>
-                            <Action.Push title="Add new testers" target={<AddIndividualTester 
+                            <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester 
                                                                             app={app} 
                                                                             build={build} 
                                                                             didUpdateExistingTesters={(newTesters) => {
@@ -61,7 +61,7 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                                                                             }}
                                                                         />} 
                             />
-                            <Action title="Remove tester" onAction={() => {
+                            <Action title="Remove tester" style={Action.Style.Destructive} onAction={() => {
                                 (async () => {
                                     if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
                                         setTesters(testers.filter(t => t.id !== tester.id));

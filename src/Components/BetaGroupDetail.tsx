@@ -4,6 +4,8 @@ import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStor
 import { useEffect, useState } from "react";
 import InternalBetaGroupTesters from "./InternalBetaGroupTesters";
 import ExternalBetaGroupTesters from "./ExternalBetaGroupTesters";
+import InternalBetaGroupBuilds from "./InternalBetaGroupBuilds";
+import ManageInternalBuilds from "./ManageInternalBuilds";
 interface Props {
     app: App;
     group: BetaGroup;
@@ -81,23 +83,41 @@ export default function BetaGroupDetail({ app, group }: Props) {
         return accessories;
     };
 
+    console.log(testers.map((tester: BetaTester) => tester.attributes.inviteType));
+
     return (
         <List 
             isLoading={isLoadingBetaGroup || isLoadingBetaTesterUsages}
             actions={
                 <ActionPanel>
-                    <Action.Push title="Add new testers" target={group.attributes.isInternalGroup ? <InternalBetaGroupTesters app={app} group={group} didUpdateNewTesters={(newTesters) => {
-                        setTesters(testers.concat(newTesters));
-                    }} /> : <ExternalBetaGroupTesters group={group} app={app} didUpdateNewTesters={(newTesters) => {
-                        setTesters(testers.concat(newTesters));
-                    }} />}/>
+                    {group.attributes.isInternalGroup ?
+                        <>
+                            <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<InternalBetaGroupTesters app={app} group={group} didUpdateNewTesters={(newTesters) => {
+                                setTesters(testers.concat(newTesters));
+                            }} />}/> 
+                            
+                            <Action.Push title="Manage Builds" icon={Icon.Building} target={<ManageInternalBuilds 
+                                app={app} 
+                                group={group} 
+                                didAddBuilds={(builds) => {
+                                    
+                                }}
+                                didRemoveBuilds={(builds) => {
+                                    
+                                }}
+                            />}/>
+                        </>
+                        :
+                        <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<ExternalBetaGroupTesters group={group} app={app} didUpdateNewTesters={(newTesters) => {
+                            setTesters(testers.concat(newTesters));
+                        }} />}/>}
                 </ActionPanel>
             }
         >
                 {testers?.map((tester: BetaTester) => (
                     <List.Item
-                        title={tester.attributes.firstName + " " + tester.attributes.lastName}
-                        subtitle={tester.attributes.email ?? ""}
+                        title={tester.attributes.inviteType === "PUBLIC_LINK" ? tester.attributes.firstName : tester.attributes.firstName + " " + tester.attributes.lastName}
+                        subtitle={tester.attributes.inviteType === "PUBLIC_LINK" ? "Public link" ?? "" : tester.attributes.email ?? ""}
                         key={tester.id}
                         icon={{ source: Icon.Person }}
                         accessories={listAccessory(tester)}
@@ -108,7 +128,7 @@ export default function BetaGroupDetail({ app, group }: Props) {
                                 }} /> : <ExternalBetaGroupTesters group={group} app={app} didUpdateNewTesters={(newTesters) => {
                                     setTesters(testers.concat(newTesters));
                                 }} />}/>
-                                <Action title="Remove from group" icon={Icon.Trash} onAction={() => {
+                                <Action title="Remove from group" style={Action.Style.Destructive} icon={Icon.Trash} onAction={() => {
                                     (async () => {
                                         if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
                                             setTesters(testers.filter(t => t.id !== tester.id));
@@ -121,6 +141,16 @@ export default function BetaGroupDetail({ app, group }: Props) {
                                         }
                                     })();
                                 }} />
+                                <Action.Push title="Manage Builds" icon={Icon.Building} target={<ManageInternalBuilds 
+                                    app={app} 
+                                    group={group} 
+                                    didAddBuilds={(builds) => {
+                                        
+                                    }}
+                                    didRemoveBuilds={(builds) => {
+                                        
+                                    }}
+                                />}/>
                             </ActionPanel>
                         }
                     />

@@ -102,6 +102,15 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
         }
     };
 
+    const removeSubmittedForBetaReview = async () => {
+        const response = await fetchAppStoreConnect(`/betaAppReviewSubmissions/${build.build.id}`, "DELETE");
+        if (response && !response.ok) {
+            const error = constructError(response, "Could not remove submitted for beta review");
+            throw error;
+        }
+        return true;
+    };
+
     const submitForBetaReview = async () => {
         const containsExternalGroups = usedGroupsIDs.find(bg => {
             const betaGroup = betaGroups?.find(bg2 => {
@@ -182,6 +191,26 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
         return false;
     };
 
+    const isExpired = () => {
+        return build.buildBetaDetails.attributes.externalBuildState === "EXPIRED" || build.buildBetaDetails.attributes.internalBuildState === "EXPIRED";
+    }
+
+    const expireBuild = async () => {
+        const response = await fetchAppStoreConnect(`/builds/${build.build.id}`, "PATCH", {
+            data: {
+                type: "builds",
+                id: build.build.id,
+                attributes: {
+                    expired: true
+                }
+            }
+        });
+        if (response && !response.ok) {
+            const error = constructError(response, "Could not expire build");
+            throw error;
+        }
+    };
+
     return (
         <Form 
             actions={
@@ -207,7 +236,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                                         groupsDidChange(usedGroups ?? []);
                                     }
                                     if (submitted) {
-                                        betaStateDidChange("SUBMITTED_FOR_BETA_REVIEW");
+                                        betaStateDidChange("WAITING_FOR_BETA_REVIEW");
                                         showToast({
                                             style: Toast.Style.Success,
                                             title: "Success!",
@@ -232,6 +261,24 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                             setWhatToTestError("You must specify what to test");
                         }
                     }} />
+                {!isExpired() && <Action title="Expire" onAction={async () => {
+                    (async () => {
+                        try {
+                            setSubmitIsLoading(true);
+                            await expireBuild();
+                            betaStateDidChange("EXPIRED");
+                            showToast({
+                                style: Toast.Style.Success,
+                                title: "Success!",
+                                message: "Expired",
+                            });
+                            setSubmitIsLoading(false);
+                        } catch (error) {
+                            presentError(error);
+                            setSubmitIsLoading(false);
+                        }
+                    })();
+                }} />}
                 </ActionPanel>
             }
             isLoading={isLoadingBetaGroups || isLoadingBetaBuildLocalizations || submitIsLoading}>

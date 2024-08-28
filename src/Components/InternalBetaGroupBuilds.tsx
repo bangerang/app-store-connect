@@ -215,7 +215,7 @@ export default function InternalBetaGroupBuilds({ group, app }: Props) {
                         <ActionPanel>
                             {!group.attributes.hasAccessToAllBuilds && 
                                 <>
-                                    <Action title="Remove build from group" icon={Icon.Trash} onAction={async () => {
+                                    <Action title="Remove build from group" style={Action.Style.Destructive} icon={Icon.Trash} onAction={async () => {
                                         setCurrentBuilds(currentBuilds.filter(b => b.build.id !== bg.build.id));
                                         (async () => {
                                             if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 

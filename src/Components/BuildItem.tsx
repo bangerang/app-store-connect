@@ -4,8 +4,9 @@ import { App, BuildWithBetaDetailAndBetaGroups, BetaGroup, betaBuildUsagesSchema
 import BuildDetail from "./BuildDetail";
 import React, { useEffect, useMemo } from "react";
 import { useState } from "react";
-import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
+import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
 import IndividualTestersList from "./IndividualTestersList";
+import { presentError } from "../Utils/utils";
 
 interface BuildItemProps {
     app: App;
@@ -71,7 +72,7 @@ export default function BuildItem({ build, app }: BuildItemProps) {
         } else if (betaDetails.attributes.externalBuildState === "PROCESSING_EXCEPTION") {
             return { source: Icon.Dot, tintColor: Color.Red };
         } else if (betaDetails.attributes.externalBuildState === "MISSING_EXPORT_COMPLIANCE") {
-            return { source: Icon.Dot, tintColor: Color.Red };
+            return { source: Icon.Warning, tintColor: Color.Yellow };
         } else if (betaDetails.attributes.externalBuildState === "READY_FOR_BETA_TESTING") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
         } else if (betaDetails.attributes.externalBuildState === "IN_BETA_TESTING") {
@@ -171,6 +172,10 @@ export default function BuildItem({ build, app }: BuildItemProps) {
             return false;
         } else if (betaDetails.attributes.externalBuildState === "PROCESSING_EXCEPTION") {
             return false;
+        } else if (isMissingExportCompliance()) {
+            return false;
+        } else if (build.build.attributes.processingState === "PROCESSING") {
+            return false;
         }
         return true;
     }
@@ -188,13 +193,44 @@ export default function BuildItem({ build, app }: BuildItemProps) {
         }
       }, [build]);
 
+    const isMissingExportCompliance = () => {
+        return build.buildBetaDetails.attributes.externalBuildState === "MISSING_EXPORT_COMPLIANCE";
+    }
+
+    const setExportCompliance = async (encryption: boolean) => {
+        const response = await fetchAppStoreConnect(`/builds/${build.build.id}`, "PATCH", {
+            data: {
+                type: "builds",
+                id: build.build.id,
+                attributes: {
+                    usesNonExemptEncryption: encryption
+                }
+            }
+        });
+    };
+    const isExpired = () => {
+        return build.buildBetaDetails.attributes.externalBuildState === "EXPIRED" || build.buildBetaDetails.attributes.internalBuildState === "EXPIRED";
+    }
+
+    const expireBuild = async () => {
+        const response = await fetchAppStoreConnect(`/builds/${build.build.id}`, "PATCH", {
+            data: {
+                type: "builds",
+                id: build.build.id,
+                attributes: {
+                    expired: true
+                }
+            }
+        });
+    };
+
     return (
         <List.Item
             id={build.build.id}
             icon={{ 
                 source: iconURL,
                 mask: Image.Mask.RoundedRectangle, }}
-            title={"Build " + build.build.attributes.version}
+            title={"Build " + build.build.attributes.version + (build.build.attributes.processingState === "PROCESSING" ? " (Processing)" : "")}
             subtitle={convertExpirationDateToDays()}
             accessories={accessoriesForBuild()}
             actions={
@@ -208,15 +244,57 @@ export default function BuildItem({ build, app }: BuildItemProps) {
                                                                         setBetaGroups(groups);
                                                                     }}
                                                                     betaStateDidChange={(betaState: string) => {
-                                                                        build.buildBetaDetails.attributes.externalBuildState = "WAITING_FOR_BETA_REVIEW"
-                                                                        setExternalBuildState("WAITING_FOR_BETA_REVIEW")
-                                                                    }} 
+                                                                        build.buildBetaDetails.attributes.externalBuildState = betaState
+                                                                        setExternalBuildState(betaState)
+                                                                    }}
                                                                     />
                                                                 } 
                                                                 />
                 <Action.Push title="Manage Individual Testers" target={<IndividualTestersList app={app} build={build} />} />
                 </>
-        }
+            }
+            {isMissingExportCompliance() && <Action title="Set is not using non-exempt encryption" onAction={async () => {
+                const oldState = build.buildBetaDetails.attributes.externalBuildState;
+                (async () => {
+                    try {
+                        build.buildBetaDetails.attributes.externalBuildState = "READY_FOR_BETA_SUBMISSION";
+                        setExternalBuildState("READY_FOR_BETA_SUBMISSION");
+                        await setExportCompliance(false);
+                    } catch (error) {
+                        presentError(error);
+                        build.buildBetaDetails.attributes.externalBuildState = oldState;
+                        setExternalBuildState(oldState);
+                    }
+                })();
+            }}/>}
+            {isMissingExportCompliance() && <Action title="Set is using non-exempt encryption" onAction={async () => {
+                const oldState = build.buildBetaDetails.attributes.externalBuildState;
+                (async () => {
+                    try {
+                        build.buildBetaDetails.attributes.externalBuildState = "READY_FOR_BETA_SUBMISSION";
+                        setExternalBuildState("READY_FOR_BETA_SUBMISSION");
+                        await setExportCompliance(true);
+                    } catch (error) {
+                        presentError(error);
+                        build.buildBetaDetails.attributes.externalBuildState = oldState;
+                        setExternalBuildState(oldState);
+                    }
+                })();
+            }} />}
+            {!isExpired() && <Action title="Expire" onAction={async () => {
+                        const oldState = build.buildBetaDetails.attributes.externalBuildState;
+                        (async () => {
+                            try {
+                                build.buildBetaDetails.attributes.externalBuildState = "EXPIRED";
+                                setExternalBuildState("EXPIRED");
+                                await expireBuild();
+                            } catch (error) {
+                                presentError(error);
+                                build.buildBetaDetails.attributes.externalBuildState = oldState;
+                                setExternalBuildState(oldState);
+                            }
+                        })();
+                    }} />}
             </ActionPanel>
             }  
       />

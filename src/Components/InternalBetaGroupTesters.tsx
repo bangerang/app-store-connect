@@ -15,10 +15,10 @@ interface InternalBetaGroupTestersFormValues {
 export default function InternalBetaGroupTesters({ group, app, didUpdateNewTesters }: InternalBetaGroupTestersProps) {
     const [betaUsersPath, setBetaUsersPath] = useState<string | undefined>(undefined);
     const { data: allUsers, isLoading: isLoadingUsers } = useAppStoreConnectApi(`/users?filter[roles]=ACCOUNT_HOLDER,ADMIN,APP_MANAGER,DEVELOPER,MARKETING&filter[visibleApps]=${app.id}`, (response) => {
-        return usersSchema.safeParse(response).data ?? null;
+        return usersSchema.safeParse(response.data).data ?? null;
     });
     const { data: betaUsers, isLoading: isLoadingBetaUsers } = useAppStoreConnectApi(betaUsersPath, (response) => {
-        return betaTestersSchema.safeParse(response).data ?? null;
+        return betaTestersSchema.safeParse(response.data).data ?? null;
     });
     const [availableUsers, setAvailableUsers] = useState<User[]>();
     const [submitIsLoading, setSubmitIsLoading] = useState(false);

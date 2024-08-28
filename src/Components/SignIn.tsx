@@ -54,14 +54,11 @@ interface SignInProps {
                   }
                   (async () => {
                     setIsCheckConnection(true);
-                    // Read the contents of the private key file
+                    
                     const privateKeyContent = fs.readFileSync(file, 'utf8');
-                    // Encode the private key content
+                    
                     const encodedPrivateKey = base64EncodePrivateKey(privateKeyContent);
                     
-                    console.log("encodedPrivateKey", encodedPrivateKey);
-                    console.log("apiKey", values.apiKey);
-                    console.log("issuerID", values.issuerID);
                     await LocalStorage.setItem("apiKey", values.apiKey);
                     await LocalStorage.setItem("privateKey", encodedPrivateKey);
                     await LocalStorage.setItem("issuerID", values.issuerID);

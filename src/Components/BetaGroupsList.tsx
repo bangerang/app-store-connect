@@ -10,7 +10,6 @@ interface BetaGroupsListProps {
     app: App;
 }
 export default function BetaGroupsList({ app }: BetaGroupsListProps) {
-    console.log("BetaGroupsList");
     const { data: betaGroups, isLoading: isLoadingBetaGroups } = useAppStoreConnectApi(`/betaGroups?filter[app]=${app.id}`, (response) => {
         return betaGroupsSchema.safeParse(response.data).data ?? null;
     });
@@ -69,15 +68,14 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
                         actions={
                             <ActionPanel>
                                 <Action.Push
-                                    title="Manage Testers"
+                                    title="Manage Group"
                                     icon={Icon.TwoPeople}
                                     target={
                                         <BetaGroupDetail app={app} group={betaGroup} />
                                     }
                                 />
-                                <Action.Push title="Manage Builds" icon={Icon.Building} target={<InternalBetaGroupBuilds group={betaGroup} app={app} />}/>
                                 <Action.Push title="Create New Group" icon={Icon.AddPerson} target={<CreateNewGroup app={app} didCreateNewGroup={didCreateNewGroup} />} />
-                                <Action title="Delete Group" icon={Icon.Trash} onAction={async () => {
+                                <Action title="Delete Group" style={Action.Style.Destructive} icon={Icon.Trash} onAction={async () => {
                                     await deleteGroup(betaGroup);
                                 }} />
                             </ActionPanel>
@@ -93,11 +91,14 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
                         actions={
                             <ActionPanel>
                                 <Action.Push
-                                    title="Manage Testers"
+                                    title="Manage Group"
+                                    icon={Icon.TwoPeople}
                                     target={
                                         <BetaGroupDetail app={app} group={betaGroup} />
                                     }
                                 />
+                                <Action.Push title="Manage Builds" icon={Icon.Building} target={<InternalBetaGroupBuilds group={betaGroup} app={app} />}/>
+                                <Action.Push title="Create New Group" icon={Icon.AddPerson} target={<CreateNewGroup app={app} didCreateNewGroup={didCreateNewGroup} />} />
                                 <Action title="Delete Group" icon={Icon.Trash} onAction={async () => {
                                     await deleteGroup(betaGroup);
                                 }} />
