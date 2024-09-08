@@ -15,8 +15,12 @@ const { data, isLoading } = useAppStoreConnectApi(path, (response) => {
   return appSchemas.safeParse(response.data).data;
 });
 
+console.log({path});
+console.log({data});
+
   return (
     <SignIn didSignIn={() => {
+      console.log("didSignIn", path);
       setPath("/apps")
     }}>
       <List

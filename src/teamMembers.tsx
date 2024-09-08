@@ -13,7 +13,7 @@ export default function Command() {
 const [path, setPath] = useState<string | undefined >(undefined)
 const [invitedPath, setInvitedPath] = useState<string | undefined >(undefined)
 
-const { data: allUsers, isLoading } = useAppStoreConnectApi(path, (response) => {
+const { data: fetchedUsers, isLoading, pagination } = useAppStoreConnectApi(path, (response) => {
     return usersSchema.safeParse(response.data).data ?? null;
 });
 
@@ -21,13 +21,17 @@ const { data: fetchedInvited, isLoading: isLoadingInvited } = useAppStoreConnect
     return userInvitationsSchemas.safeParse(response.data).data ?? null;
 });
 
+const [allUsers, setAllUsers] = useState<User[]>(fetchedUsers ?? []);
+
 const [allInvitedUsers, setAllInvitedUsers] = useState<UserInvitation[]>(fetchedInvited ?? []);
 
 useEffect(() => {
     setAllInvitedUsers(fetchedInvited ?? []);
 }, [fetchedInvited]);
 
-console.log({allInvitedUsers})
+useEffect(() => {
+    setAllUsers(fetchedUsers ?? []);
+}, [fetchedUsers]);
 
 const rolesString = (roles: string[]) => {
     if (roles.length === 0) {
@@ -50,6 +54,7 @@ const rolesString = (roles: string[]) => {
     }}>
         <List 
             isLoading={isLoading || isLoadingInvited}
+            pagination={pagination}
             actions={
                 <ActionPanel>
                     <Action.Push title="Invite team member" target={<InviteTeamMember didInviteNewUser={(user) => {
@@ -102,6 +107,20 @@ const rolesString = (roles: string[]) => {
                     ]}
                     actions={
                         <ActionPanel>
+                            <Action title="Remove" style={Action.Style.Destructive} onAction={async () => {
+                                if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
+                                    const removed = allUsers.find((user) => user.id === user.id);
+                                    try {
+                                        await fetchAppStoreConnect(`/users/${user.id}`, "DELETE");
+                                        setAllUsers(allUsers.filter((user) => user.id !== user.id));
+                                    } catch (error) {
+                                        if (removed) {
+                                            setAllUsers([...allUsers, removed]);
+                                        }
+                                        presentError(error);
+                                    }
+                                }  
+                            }} />
                             <Action.Push title="Invite team member" target={<InviteTeamMember didInviteNewUser={(user) => {
                                 setAllInvitedUsers([...allInvitedUsers, user]);
                             }} />} />

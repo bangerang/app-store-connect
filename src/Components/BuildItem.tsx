@@ -27,69 +27,66 @@ export default function BuildItem({ build, app }: BuildItemProps) {
 
     const firstBetaBuildUsage = betaBuildUsages?.[0];
 
-    const getProcessingStatus = (item: BuildWithBetaDetailAndBetaGroups) => {
-        const betaDetails = item.buildBetaDetails;
-        if (!betaDetails) {
+    const getProcessingStatus = (status: string | undefined) => {
+        if (!status) {
             return "Unknown";
         }
-        if (betaDetails.attributes.externalBuildState === "PROCESSING") {
+        if (status === "PROCESSING") {
             return "Processing";
-        } else if (betaDetails.attributes.externalBuildState === "PROCESSING_EXCEPTION") {
+        } else if (status === "PROCESSING_EXCEPTION") {
             return "Processing Exception";
-        } else if (betaDetails.attributes.externalBuildState === "MISSING_EXPORT_COMPLIANCE") {
+        } else if (status === "MISSING_EXPORT_COMPLIANCE") {
             return "Missing Export Compliance";
-        } else if (betaDetails.attributes.externalBuildState === "READY_FOR_BETA_TESTING") {
+        } else if (status === "READY_FOR_BETA_TESTING") {
             return "Ready for Beta Testing";
-        } else if (betaDetails.attributes.externalBuildState === "IN_BETA_TESTING") {
+        } else if (status === "IN_BETA_TESTING") {
             return "Testing";
-        } else if (betaDetails.attributes.externalBuildState === "EXPIRED") {
+        } else if (status === "EXPIRED") {
             return "Expired";
-        } else if (betaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION") {
+        } else if (status === "READY_FOR_BETA_SUBMISSION") {
             return "Ready to Submit";
-        } else if (betaDetails.attributes.externalBuildState === "IN_EXPORT_COMPLIANCE_REVIEW") {
+        } else if (status === "IN_EXPORT_COMPLIANCE_REVIEW") {
             return "In Export Compliance Review";
-        } else if (betaDetails.attributes.externalBuildState === "WAITING_FOR_BETA_REVIEW") {
+        } else if (status === "WAITING_FOR_BETA_REVIEW") {
             return "Waiting for Beta Review";
-        } else if (betaDetails.attributes.externalBuildState === "IN_BETA_REVIEW") {
+        } else if (status === "IN_BETA_REVIEW") {
             return "In Beta Review";
-        } else if (betaDetails.attributes.externalBuildState === "BETA_REJECTED") {
+        } else if (status === "BETA_REJECTED") {
             return "Beta Rejected";
-        } else if (betaDetails.attributes.externalBuildState === "BETA_APPROVED") {
+        } else if (status === "BETA_APPROVED") {
             return "Approved";
         } else {
-            console.log(betaDetails.attributes.internalBuildState);
             return "Unknown";
         }
     }
 
-    const getProccessingStatusIcon = (item: BuildWithBetaDetailAndBetaGroups) => {
-        const betaDetails = item.buildBetaDetails;
-        if (!betaDetails) {
+    const getProccessingStatusIcon = (item: string | undefined) => {
+        if (!item) {
             return Icon.Dot;
         }
-        if (betaDetails.attributes.externalBuildState === "PROCESSING") {
+        if (item === "PROCESSING") {  
             return Icon.Dot;
-        } else if (betaDetails.attributes.externalBuildState === "PROCESSING_EXCEPTION") {
+        } else if (item === "PROCESSING_EXCEPTION") {
             return { source: Icon.Dot, tintColor: Color.Red };
-        } else if (betaDetails.attributes.externalBuildState === "MISSING_EXPORT_COMPLIANCE") {
+        } else if (item === "MISSING_EXPORT_COMPLIANCE") {
             return { source: Icon.Warning, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "READY_FOR_BETA_TESTING") {
+        } else if (item === "READY_FOR_BETA_TESTING") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "IN_BETA_TESTING") {
+        } else if (item === "IN_BETA_TESTING") {
             return { source: Icon.Dot, tintColor: Color.Green };
-        } else if (betaDetails.attributes.externalBuildState === "EXPIRED") {
+        } else if (item === "EXPIRED") {
             return { source: Icon.Dot, tintColor: Color.Red };
-        } else if (betaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION") {
+        } else if (item === "READY_FOR_BETA_SUBMISSION") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "IN_EXPORT_COMPLIANCE_REVIEW") {
+        } else if (item === "IN_EXPORT_COMPLIANCE_REVIEW") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "WAITING_FOR_BETA_REVIEW") {
+        } else if (item === "WAITING_FOR_BETA_REVIEW") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "IN_BETA_REVIEW") {
+        } else if (item === "IN_BETA_REVIEW") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "BETA_REJECTED") {
+        } else if (item === "BETA_REJECTED") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
-        } else if (betaDetails.attributes.externalBuildState === "BETA_APPROVED") {
+        } else if (item === "BETA_APPROVED") {
             return { source: Icon.Dot, tintColor: Color.Yellow };
         } else {
             return Icon.Dot;
@@ -99,7 +96,7 @@ export default function BuildItem({ build, app }: BuildItemProps) {
     const accessoriesForBuild = () => {
         const item = build;
         const getProcessingStatusArray = [
-            { text: getProcessingStatus(item), icon: getProccessingStatusIcon(item) },
+            { tooltip: "Beta status: " + getProcessingStatus(externalBuildState), icon: getProccessingStatusIcon(externalBuildState) },
         ]
         const betaGroupsCommaSeparated = betaGroups.map((bg) => {
             return bg.attributes.name
@@ -124,10 +121,10 @@ export default function BuildItem({ build, app }: BuildItemProps) {
                     }
                 }
                 usage = [
-                    { text: hyphenIfZero(dataPoint.values.inviteCount), tooltip: "Invites", icon: { source: Icon.Envelope, tintColor: Color.Yellow } },
-                    { text: hyphenIfZero(dataPoint.values.installCount), tooltip: "Installs", icon: { source: Icon.ArrowDown, tintColor: Color.Green } },
-                    { text: hyphenIfZero(dataPoint.values.sessionCount), tooltip: "Sessions", icon: { source: Icon.Mobile, tintColor: Color.Green } },
-                    { text: hyphenIfZero(dataPoint.values.crashCount), tooltip: "Crashes", icon: { source: Icon.Exclamationmark, tintColor: Color.Red } },
+                    { text: hyphenIfZero(dataPoint.values.inviteCount), tooltip: "Invites: " + dataPoint.values.inviteCount.toString(), icon: { source: Icon.Envelope, tintColor: Color.Yellow } },
+                    { text: hyphenIfZero(dataPoint.values.installCount), tooltip: "Installs: " + dataPoint.values.installCount.toString(), icon: { source: Icon.ArrowDown, tintColor: Color.Green } },
+                    { text: hyphenIfZero(dataPoint.values.sessionCount), tooltip: "Sessions: " + dataPoint.values.sessionCount.toString(), icon: { source: Icon.Mobile, tintColor: Color.Green } },
+                    { text: hyphenIfZero(dataPoint.values.crashCount), tooltip: "Crashes: " + dataPoint.values.crashCount.toString(), icon: { source: Icon.Exclamationmark, tintColor: Color.Red } },
                 ] as any;
             }
         } else {
@@ -147,19 +144,21 @@ export default function BuildItem({ build, app }: BuildItemProps) {
     }
 
 
-    const convertExpirationDateToDays = () => {
+    const expirationIcon = () => {
         const b = build.build;
         const expirationDate = new Date(b.attributes.expirationDate);
         const currentDate = new Date();
         const days = Math.round(Math.abs((expirationDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24)));
+        const daysString = days.toString();
+    
         if (b.attributes.expired) {
-            return undefined;
+            return {tooltip: "Expired", value: Icon.Clock};
         } else if (days === 0) {
-            return "Expires Today";
+            return {tooltip: "Expires Today", value: {source: Icon.Clock, tintColor: Color.Yellow}};
         } else if (days === 1) {
-            return "Expires in 1 day";
+            return {tooltip: "Expires in " + daysString + " day", value: Icon.Clock};
         } else {
-            return "Expires in " + days.toString() + " days";
+            return {tooltip: "Expires in " + daysString + " days", value: Icon.Clock};
         }
     }
 
@@ -227,11 +226,8 @@ export default function BuildItem({ build, app }: BuildItemProps) {
     return (
         <List.Item
             id={build.build.id}
-            icon={{ 
-                source: iconURL,
-                mask: Image.Mask.RoundedRectangle, }}
+            icon={expirationIcon()}
             title={"Build " + build.build.attributes.version + (build.build.attributes.processingState === "PROCESSING" ? " (Processing)" : "")}
-            subtitle={convertExpirationDateToDays()}
             accessories={accessoriesForBuild()}
             actions={
             <ActionPanel>

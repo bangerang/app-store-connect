@@ -12,32 +12,38 @@
   "commands": [
     {
       "name": "showApps",
-      "title": "Show apps",
+      "title": "Show Apps",
       "description": "Template with a plain detail view",
       "mode": "view"
     },
     {
       "name": "testFlightBuilds",
-      "title": "Show builds",
+      "title": "Show Builds",
       "description": "Template with a plain detail view",
       "mode": "view"
     },
     {
       "name": "testInformation",
-      "title": "Test information",
+      "title": "Test Information",
       "description": "Test information",
       "mode": "view"
     },
     {
       "name": "showGroups",
-      "title": "Show beta groups",
+      "title": "Show Beta Groups",
       "description": "Show beta groups",
       "mode": "view"
     },
     {
       "name": "teamMembers",
-      "title": "Team members",
+      "title": "Team Members",
       "description": "Show team members",
+      "mode": "view"
+    },
+    {
+      "name": "manageTeams",
+      "title": "Manage Teams",
+      "description": "Manage teams",
       "mode": "view"
     }
   ],

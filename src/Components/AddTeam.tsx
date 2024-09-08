@@ -1,4 +1,5 @@
-import { LocalStorage, ActionPanel, Form, Action } from "@raycast/api";
+
+import { LocalStorage, ActionPanel, Form, Action, showToast, Toast } from "@raycast/api";
 import { useEffect, useState, ReactNode } from "react";
 import fs from "fs";
 import { fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
@@ -6,42 +7,18 @@ import { presentError } from "../Utils/utils";
 import { useTeams, Team } from "../Model/useTeams";
 
 interface SignInProps {
-    children: ReactNode;
-    didSignIn: () => void
-  }
+    didSignIn: (team: Team) => void
+}
   
- export default function SignIn({ children, didSignIn }: SignInProps) {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | undefined>(false);
-    const [isLoading, setIsLoading] = useState(true);
+ export default function AddTeam({ didSignIn }: SignInProps) {
     const [isCheckConnection, setIsCheckConnection] = useState(false);
-    const { isLoading: isLoadingTeams, currentTeam, selectCurrentTeam, removeCurrentTeam, addTeam } = useTeams();
-
-    useEffect(() => {
-      (async () => {
-        if (!isLoadingTeams) {
-          if (currentTeam === undefined) {
-            setIsAuthenticated(false);
-          } else {
-            setIsAuthenticated(true);
-            didSignIn()
-          }
-          setIsLoading(false);
-        }
-      })();
-    }, [didSignIn, currentTeam, isLoadingTeams]);
-
-    if (isLoading) {
-      return (<Form></Form>);
-    }
+    const { selectCurrentTeam, addTeam } = useTeams()
   
-    if (isAuthenticated) {
-      return <>{children}</>;
-    } else {
       return (
         <Form
           isLoading={isCheckConnection}
           actions={
-            <ActionPanel>
+            <ActionPanel>              
               <Action.SubmitForm
                 title="Submit"
                 onSubmit={(values: { privateKey: string[], apiKey: string, issuerID: string, name: string }) => {
@@ -73,14 +50,16 @@ interface SignInProps {
                       await addTeam(team);
                       await selectCurrentTeam(team);
                       await fetchAppStoreConnect("/apps")
-                      setIsAuthenticated(true)
-                      didSignIn()
+                      didSignIn(team);
+                      showToast({
+                        style: Toast.Style.Success,
+                        title: "Success!",
+                        message: "Added team",
+                    });
                     } catch (error) {
-                      removeCurrentTeam();
                       presentError(error);
                     }
-                    setIsCheckConnection(false);
-                    setIsLoading(false);
+                    setIsCheckConnection(false); 
                   })()
                 }}
               />
@@ -93,7 +72,6 @@ interface SignInProps {
         <Form.FilePicker id="privateKey" title="Private key" allowMultipleSelection={false} />
       </Form>
       );
-    }
   }
   
   function base64EncodePrivateKey(privateKey: string) {

@@ -11,13 +11,21 @@ interface Props {
     group: BetaGroup;
 }
 export default function BetaGroupDetail({ app, group }: Props) {
-    const { data, isLoading: isLoadingBetaGroup } = useAppStoreConnectApi(`/betaTesters?filter[betaGroups]=${group.id}`, (response) => {
+    const { data, isLoading: isLoadingBetaGroup, pagination } = useAppStoreConnectApi(`/betaTesters?filter[betaGroups]=${group.id}`, (response) => {
         return betaTestersSchema.safeParse(response.data).data ?? null;
     });
     const [testers, setTesters] = useState<BetaTester[]>([]);
-    const { data: betaTesterUsages, isLoading: isLoadingBetaTesterUsages } = useAppStoreConnectApi(`/betaGroups/${group.id}/metrics/betaTesterUsages?groupBy=betaTesters`, (response) => {
+    const { data: betaTesterUsages, isLoading: isLoadingBetaTesterUsages, pagination: betaTesterUsagesPagination } = useAppStoreConnectApi(`/betaGroups/${group.id}/metrics/betaTesterUsages?groupBy=betaTesters`, (response) => {
         return betaTesterUsageSchemas.safeParse(response.data).data ?? null;
     });
+
+    useEffect(() => {
+        if (betaTesterUsagesPagination) {
+            if (betaTesterUsagesPagination.hasMore) {
+                betaTesterUsagesPagination.onLoadMore(-1);
+            }
+        }
+    }, [betaTesterUsagesPagination]);
 
     useEffect(() => {
         if (data && betaTesterUsages) {
@@ -88,6 +96,7 @@ export default function BetaGroupDetail({ app, group }: Props) {
     return (
         <List 
             isLoading={isLoadingBetaGroup || isLoadingBetaTesterUsages}
+            pagination={pagination}
             actions={
                 <ActionPanel>
                     {group.attributes.isInternalGroup ?

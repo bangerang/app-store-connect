@@ -47,9 +47,17 @@ export default function BuildList({ app }: BuildListProps) {
 
     useEffect(() => {
       if (selectedVersion !== undefined ) {
-        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=10&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
+        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
       }
     }, [selectedVersion])
+
+    useEffect(() => {
+        if (pagination) {
+            if (pagination.hasMore) {
+                pagination.onLoadMore(-1);
+            }
+        }
+    }, [pagination]);
 
     const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
         if (!appStoreVersion) {
