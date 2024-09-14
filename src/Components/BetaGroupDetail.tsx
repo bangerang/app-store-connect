@@ -4,7 +4,7 @@ import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStor
 import { useEffect, useState } from "react";
 import InternalBetaGroupTesters from "./InternalBetaGroupTesters";
 import ExternalBetaGroupTesters from "./ExternalBetaGroupTesters";
-import InternalBetaGroupBuilds from "./InternalBetaGroupBuilds";
+import AddExternalBetaTester from "./AddExternalBetaTester";
 import ManageInternalBuilds from "./ManageInternalBuilds";
 interface Props {
     app: App;
@@ -101,7 +101,7 @@ export default function BetaGroupDetail({ app, group }: Props) {
                 <ActionPanel>
                     {group.attributes.isInternalGroup ?
                         <>
-                            <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<InternalBetaGroupTesters app={app} group={group} didUpdateNewTesters={(newTesters) => {
+                            <Action.Push title="Add multiple testers" icon={Icon.AddPerson} target={<InternalBetaGroupTesters app={app} group={group} didUpdateNewTesters={(newTesters) => {
                                 setTesters(testers.concat(newTesters));
                             }} />}/> 
                             
@@ -117,9 +117,17 @@ export default function BetaGroupDetail({ app, group }: Props) {
                             />}/>
                         </>
                         :
-                        <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<ExternalBetaGroupTesters group={group} app={app} didUpdateNewTesters={(newTesters) => {
-                            setTesters(testers.concat(newTesters));
-                        }} />}/>}
+                        <>
+                            <Action.Push title="Add new tester" icon={Icon.AddPerson} target={<AddExternalBetaTester group={group} app={app} didUpdateNewTester={(newTester) => {
+                                setTesters(testers.concat(newTester));
+                            }} />
+                            }/>
+                            <Action.Push title="Add multiple testers" icon={Icon.AddPerson} target={<ExternalBetaGroupTesters group={group} app={app} didUpdateNewTesters={(newTesters) => {
+                                setTesters(testers.concat(newTesters));
+                            }} />
+                            }/>
+                        </>
+                        }
                 </ActionPanel>
             }
         >
@@ -132,7 +140,11 @@ export default function BetaGroupDetail({ app, group }: Props) {
                         accessories={listAccessory(tester)}
                         actions={
                             <ActionPanel>
-                                <Action.Push title="Add new testers" icon={Icon.AddPerson} target={group.attributes.isInternalGroup ? <InternalBetaGroupTesters app={app} group={group} didUpdateNewTesters={(newTesters) => {
+                                <Action.Push title="Add new tester" icon={Icon.AddPerson} target={<AddExternalBetaTester group={group} app={app} didUpdateNewTester={(newTesters) => {
+                                    setTesters(testers.concat(newTesters));
+                                    }} />
+                                }/>
+                                <Action.Push title="Add multiple testers" icon={Icon.AddPerson} target={group.attributes.isInternalGroup ? <InternalBetaGroupTesters app={app} group={group} didUpdateNewTesters={(newTesters) => {
                                     setTesters(testers.concat(newTesters));
                                 }} /> : <ExternalBetaGroupTesters group={group} app={app} didUpdateNewTesters={(newTesters) => {
                                     setTesters(testers.concat(newTesters));

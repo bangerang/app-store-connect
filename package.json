@@ -13,37 +13,37 @@
     {
       "name": "showApps",
       "title": "Show Apps",
-      "description": "Template with a plain detail view",
+      "description": "Show and manage apps",
       "mode": "view"
     },
     {
       "name": "testFlightBuilds",
       "title": "Show Builds",
-      "description": "Template with a plain detail view",
+      "description": "Show and manage builds",
       "mode": "view"
     },
     {
       "name": "testInformation",
-      "title": "Test Information",
-      "description": "Test information",
+      "title": "Edit Test Information",
+      "description": "Edit Test information",
       "mode": "view"
     },
     {
       "name": "showGroups",
       "title": "Show Beta Groups",
-      "description": "Show beta groups",
+      "description": "Show and manage beta groups",
       "mode": "view"
     },
     {
       "name": "teamMembers",
-      "title": "Team Members",
-      "description": "Show team members",
+      "title": "Show Team Members",
+      "description": "Show and manage team members",
       "mode": "view"
     },
     {
       "name": "manageTeams",
-      "title": "Manage Teams",
-      "description": "Manage teams",
+      "title": "Show Teams",
+      "description": "Show and manage teams",
       "mode": "view"
     }
   ],

@@ -67,13 +67,10 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
                             }
                         }
                     } catch (error) {
-                        errors.push(error);
+                        presentError(error);
                     }
                 }
             }
-        }
-        if (added.length === 0 && errors.length > 0) {
-            return errors[0];
         }
         return added;
     }
@@ -95,7 +92,7 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
                                 email: values[i + 2]
                             },
                             relationships: {
-                                builds: {
+                                betaGroups: {
                                     data: [{
                                         type: "betaGroups",
                                         id: group.id
@@ -122,11 +119,8 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
                         }
                     }
                 } catch (error) {
-                    errors.push(error);
+                    presentError(error);
                 }
-            }
-            if (addedUsers.length === 0 && errors.length > 0) {
-                return errors[0];
             }
             return addedUsers;
     };
@@ -180,11 +174,8 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
                         }
                     }
                 } catch (error) {
-                    errors.push(error);
+                    presentError(error);
                 }
-            }
-            if (addedUsers.length === 0 && errors.length > 0) {
-                return errors[0];
             }
             return addedUsers;
     }

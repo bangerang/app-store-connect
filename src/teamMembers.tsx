@@ -1,9 +1,8 @@
 
-import {ActionPanel, Action, List, open, Icon, Color, confirmAlert, Alert } from "@raycast/api";
-import React, { useEffect, useState, ReactNode } from "react";
+import {ActionPanel, Action, List, confirmAlert, Alert } from "@raycast/api";
+import { useEffect, useState } from "react";
 import { fetchAppStoreConnect, useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
-import { App, appSchemas, UserInvitation, userInvitationsSchemas } from "./Model/schemas";
-import AppItem from "./Components/AppItem";
+import { UserInvitation, userInvitationsSchemas } from "./Model/schemas";
 import SignIn from "./Components/SignIn";
 import { usersSchema, User } from "./Model/schemas";
 import InviteTeamMember from "./Components/InviteTeamMember";
@@ -30,7 +29,14 @@ useEffect(() => {
 }, [fetchedInvited]);
 
 useEffect(() => {
-    setAllUsers(fetchedUsers ?? []);
+    let foundedUsers: User[] = [];
+    for (const user of fetchedUsers ?? []) {
+        if (foundedUsers.find(u => u.id === user.id)) {
+            continue;
+        }
+        foundedUsers.push(user);
+    }
+    setAllUsers(foundedUsers);
 }, [fetchedUsers]);
 
 const rolesString = (roles: string[]) => {
@@ -45,6 +51,15 @@ const rolesString = (roles: string[]) => {
             return replaceUnderscore;
         })
         .join(", ");
+}
+
+const makeTitle = (user: User) => {
+    const firstName = user.attributes.firstName ?? "";
+    const lastName = user.attributes.lastName ?? "";
+    if (firstName === "" && lastName === "") {
+        return user.attributes.username ?? "";
+    }
+    return firstName + " " + lastName;
 }
 
   return (
@@ -100,7 +115,8 @@ const rolesString = (roles: string[]) => {
             <List.Section title="Team members">
                 {allUsers?.map((user: User) => (
                     <List.Item
-                    title={user.attributes.firstName + " " + user.attributes.lastName}
+                    title={makeTitle(user)}
+                    key={user.id}
                     subtitle={user.attributes.username}
                     accessories={[
                         { text: rolesString(user.attributes.roles), tooltip: "Roles" }
