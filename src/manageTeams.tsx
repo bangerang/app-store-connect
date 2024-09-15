@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, Icon } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
 import { useTeams, Team } from "./Model/useTeams";
 import { useEffect, useState } from "react";
 import { confirmAlert, Alert } from "@raycast/api";
@@ -59,8 +59,12 @@ export default function Command() {
             key={team.apiKey}
             actions={
               <ActionPanel>
-                {!isCurrentTeam(team) && <Action title="Select Team" icon={Icon.CheckCircle} onAction={() => {
+                {!isCurrentTeam(team) && <Action title="Use Team" icon={Icon.CheckCircle} onAction={() => {
                     selectCurrentTeam(team);
+                    showToast({
+                      style: Toast.Style.Success,
+                      title: `Switched to ${team.name}`
+                  });
                 }} />}
                 <Action.Push title="Add new team" icon={Icon.AddPerson} target={<AddTeam didSignIn={(team) => {
                     setTeams([...teams, team]);

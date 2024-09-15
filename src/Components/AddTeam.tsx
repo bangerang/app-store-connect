@@ -16,6 +16,12 @@ interface SignInProps {
   
       return (
         <Form
+          searchBarAccessory={
+            <Form.LinkAccessory
+              target="https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api"
+              text="Creating API Keys for App Store Connect API"
+            />
+          }
           isLoading={isCheckConnection}
           actions={
             <ActionPanel>              
@@ -67,8 +73,8 @@ interface SignInProps {
         }
       >
         <Form.TextField id="name" placeholder="Team name" info="Name of the team, this is only used for display purposes" />
-        <Form.TextField id="issuerID" placeholder="Issuer ID" defaultValue="69a6de7d-dfd1-47e3-e053-5b8c7c11a4d1" />
-        <Form.TextField id="apiKey" placeholder="API Key" defaultValue="JASMSH45PH" />
+        <Form.TextField id="issuerID" placeholder="Issuer ID" />
+        <Form.TextField id="apiKey" placeholder="Key ID" />
         <Form.FilePicker id="privateKey" title="Private key" allowMultipleSelection={false} />
       </Form>
       );
