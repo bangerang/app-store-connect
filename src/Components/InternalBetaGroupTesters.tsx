@@ -16,10 +16,10 @@ export default function InternalBetaGroupTesters({ group, app, didUpdateNewTeste
     const [betaUsersPath, setBetaUsersPath] = useState<string | undefined>(undefined);
     const { data: allUsers, isLoading: isLoadingUsers } = useAppStoreConnectApi(`/users?filter[roles]=ACCOUNT_HOLDER,ADMIN,APP_MANAGER,DEVELOPER,MARKETING&filter[visibleApps]=${app.id}`, (response) => {
         return usersSchema.safeParse(response.data).data ?? null;
-    });
+    }, true);
     const { data: betaUsers, isLoading: isLoadingBetaUsers } = useAppStoreConnectApi(betaUsersPath, (response) => {
         return betaTestersSchema.safeParse(response.data).data ?? null;
-    });
+    }, true);
     const [availableUsers, setAvailableUsers] = useState<User[]>();
     const [submitIsLoading, setSubmitIsLoading] = useState(false);
     const { handleSubmit, itemProps, setValue } = useForm<InternalBetaGroupTestersFormValues>({
@@ -103,10 +103,7 @@ export default function InternalBetaGroupTesters({ group, app, didUpdateNewTeste
 
     useEffect(() => {
         if (betaUsers && allUsers) {
-            console.log("{betaUsers}", betaUsers.map((user) => user.attributes.email));
-            console.log("{allUsers}", allUsers.map((user) => user.attributes.username));
             const notInBetaUsers = allUsers.filter((user) => !betaUsers.some((betaUser) => betaUser.attributes.email === user.attributes.username));
-            console.log("{notInBetaUsers}", notInBetaUsers.map((user) => user.attributes.username));
             setAvailableUsers(notInBetaUsers);
         }
     }, [betaUsers, allUsers]);

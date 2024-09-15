@@ -29,7 +29,7 @@ interface Pagination {
   onLoadMore: (page: number) => void;
 }
 
-export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: (response: any) => T): {
+export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: (response: any) => T, loadAll?: boolean): {
   isLoading: boolean;
   data: T | null;
   error: any;
@@ -110,6 +110,16 @@ export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: 
       }
     }
   }, [currentData]);
+
+  useEffect(() => {
+    if (loadAll) {
+      if (pagination) {
+        if (pagination.hasMore) {
+          pagination.onLoadMore(-1);
+        }
+      }
+    }
+  }, [pagination]);
 
   return {
     isLoading,

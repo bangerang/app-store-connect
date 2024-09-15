@@ -40,18 +40,31 @@ useEffect(() => {
     setAllUsers(foundedUsers);
 }, [fetchedUsers]);
 
+const allowedRoles = [
+    "ADMIN",
+    "APP_MANAGER",
+    "CUSTOMER_SUPPORT",
+    "DEVELOPER",
+    "FINANCE",
+    "MARKETING",
+    "SALES",
+    "ACCOUNT_HOLDER",
+];
+
 const rolesString = (roles: string[]) => {
     if (roles.length === 0) {
         return "";
     }
-    return roles
-        .map((role) => {
-            const lowerCase = role.toLowerCase();
-            const capitalized = lowerCase.charAt(0).toUpperCase() + lowerCase.slice(1);
-            const replaceUnderscore = capitalized.replace("_", " ");
-            return replaceUnderscore;
-        })
-        .join(", ");
+    const allowedRolesString = roles.filter((role) => allowedRoles.includes(role)).map((role) => {
+        const lowerCase = role.toLowerCase();
+        const capitalized = lowerCase.charAt(0).toUpperCase() + lowerCase.slice(1);
+        const replaceUnderscore = capitalized.replace("_", " ");
+        return replaceUnderscore;
+    }).join(", ");
+    if (allowedRolesString.length > 0) {
+        return allowedRolesString;
+    }
+    return "";
 }
 
 const makeTitle = (user: User) => {
