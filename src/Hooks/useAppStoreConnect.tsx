@@ -74,11 +74,13 @@ export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: 
           }
         });
       } else {
-        setPagination({
-          pageSize: json.meta.paging.limit,
-          hasMore: false,
-          onLoadMore: (page) => {}
-        });
+        if (json.meta && json.meta.paging) {
+          setPagination({
+            pageSize: json.meta.paging.limit,
+            hasMore: false,
+            onLoadMore: (page) => {}
+          });
+        }
       }
       const item = mapResponse(json);
       setCurrentData(item); 

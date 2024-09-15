@@ -214,6 +214,37 @@ export const userSchema = z.object({
   })
 });
 
+export const userSchemaWithApps = z.object({
+  data: z.object({
+    type: z.literal('users'),
+    id: z.string(),
+    attributes: z.object({
+      username: z.string(),
+      firstName: z.string(),
+      lastName: z.string(),
+      roles: z.array(z.string()),
+      allAppsVisible: z.boolean(),
+      provisioningAllowed: z.boolean(),
+    }),
+  }),
+  included: z.array(z.object({
+    type: z.literal('apps'),
+    id: z.string(),
+    attributes: z.object({
+      name: z.string(),
+      bundleId: z.string(),
+      sku: z.string(),
+      primaryLocale: z.string(),
+      isOrEverWasMadeForKids: z.boolean(),
+      subscriptionStatusUrl: z.string().nullable(),
+      subscriptionStatusUrlVersion: z.string().nullable(),
+      subscriptionStatusUrlForSandbox: z.string().nullable(),
+      subscriptionStatusUrlVersionForSandbox: z.string().nullable(),
+      contentRightsDeclaration: z.string().nullable(),
+    }),
+  }))
+});
+
 export const userInvitationsSchema = z.object({
   type: z.literal('userInvitations'),
   id: z.string(),

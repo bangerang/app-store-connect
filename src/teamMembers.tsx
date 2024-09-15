@@ -7,6 +7,7 @@ import SignIn from "./Components/SignIn";
 import { usersSchema, User } from "./Model/schemas";
 import InviteTeamMember from "./Components/InviteTeamMember";
 import { presentError } from "./Utils/utils";
+import EditTeamMember from "./Components/EditTeamMember";
 
 export default function Command() {
 const [path, setPath] = useState<string | undefined >(undefined)
@@ -123,12 +124,20 @@ const makeTitle = (user: User) => {
                     ]}
                     actions={
                         <ActionPanel>
+                            <Action.Push title="Edit" target={<EditTeamMember user={user} userChanged={(newUser) => {
+                                setAllUsers(allUsers.map((user) => {
+                                    if (user.id === newUser.id) {
+                                        return newUser;
+                                    }
+                                    return user;
+                                }));
+                            }} />} />
                             <Action title="Remove" style={Action.Style.Destructive} onAction={async () => {
                                 if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
                                     const removed = allUsers.find((user) => user.id === user.id);
                                     try {
-                                        await fetchAppStoreConnect(`/users/${user.id}`, "DELETE");
                                         setAllUsers(allUsers.filter((user) => user.id !== user.id));
+                                        await fetchAppStoreConnect(`/users/${user.id}`, "DELETE");
                                     } catch (error) {
                                         if (removed) {
                                             setAllUsers([...allUsers, removed]);
