@@ -1,5 +1,5 @@
 
-import {ActionPanel, Action, List, confirmAlert, Alert } from "@raycast/api";
+import {ActionPanel, Action, List, confirmAlert, Alert, Keyboard, Icon } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { fetchAppStoreConnect, useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
 import { UserInvitation, userInvitationsSchemas } from "./Model/schemas";
@@ -68,12 +68,15 @@ const rolesString = (roles: string[]) => {
 }
 
 const makeTitle = (user: User) => {
-    const firstName = user.attributes.firstName ?? "";
-    const lastName = user.attributes.lastName ?? "";
-    if (firstName === "" && lastName === "") {
-        return user.attributes.username ?? "";
-    }
-    return firstName + " " + lastName;
+    const firstName = JSON.stringify(user.attributes.firstName ?? "");
+    const lastName = JSON.stringify(user.attributes.lastName ?? "");
+    return `${JSON.parse(firstName)} ${JSON.parse(lastName)}`;
+}
+
+const inviteAction = () => {
+    return <Action.Push title="Invite team member" icon={Icon.AddPerson} shortcut={Keyboard.Shortcut.Common.New} target={<InviteTeamMember didInviteNewUser={(user) => {
+        setAllInvitedUsers([...allInvitedUsers, user]);
+    }} />} />
 }
 
   return (
@@ -86,9 +89,7 @@ const makeTitle = (user: User) => {
             pagination={pagination}
             actions={
                 <ActionPanel>
-                    <Action.Push title="Invite team member" target={<InviteTeamMember didInviteNewUser={(user) => {
-                        setAllInvitedUsers([...allInvitedUsers, user]);
-                    }} />} />
+                    {inviteAction()}
                 </ActionPanel>
             }
         >
@@ -103,7 +104,7 @@ const makeTitle = (user: User) => {
                     ]}
                     actions={
                         <ActionPanel>
-                            <Action title="Revoke" style={Action.Style.Destructive} onAction={async () => {
+                            <Action title="Revoke" icon={Icon.Trash} shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
                                 if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Revoke", style: Alert.ActionStyle.Destructive }})) { 
                                     const revoked = allInvitedUsers.find((user) => user.id === user.id);
                                     try {
@@ -117,9 +118,7 @@ const makeTitle = (user: User) => {
                                     }
                                 }  
                             }} />
-                            <Action.Push title="Invite team member" target={<InviteTeamMember didInviteNewUser={(user) => {
-                                setAllInvitedUsers([...allInvitedUsers, user]);
-                            }} />} />
+                           {inviteAction()}
                         </ActionPanel>
                     }
                     />
@@ -129,15 +128,15 @@ const makeTitle = (user: User) => {
             <List.Section title="Team members">
                 {allUsers?.map((user: User) => (
                     <List.Item
-                    title={makeTitle(user)}
-                    key={user.id}
-                    subtitle={user.attributes.username}
-                    accessories={[
-                        { text: rolesString(user.attributes.roles), tooltip: "Roles" }
-                    ]}
+                        title={makeTitle(user)}  
+                        key={user.id}
+                        subtitle={user.attributes.username}
+                        accessories={[
+                            { text: rolesString(user.attributes.roles), tooltip: "Roles" }
+                        ]}
                     actions={
                         <ActionPanel>
-                            <Action.Push title="Edit" target={<EditTeamMember user={user} userChanged={(newUser) => {
+                            <Action.Push title="Edit" icon={Icon.Person} shortcut={Keyboard.Shortcut.Common.Edit} target={<EditTeamMember user={user} userChanged={(newUser) => {
                                 setAllUsers(allUsers.map((user) => {
                                     if (user.id === newUser.id) {
                                         return newUser;
@@ -145,7 +144,7 @@ const makeTitle = (user: User) => {
                                     return user;
                                 }));
                             }} />} />
-                            <Action title="Remove" style={Action.Style.Destructive} onAction={async () => {
+                            <Action title="Remove" icon={Icon.Trash} shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
                                 if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
                                     const removed = allUsers.find((user) => user.id === user.id);
                                     try {
@@ -159,9 +158,7 @@ const makeTitle = (user: User) => {
                                     }
                                 }  
                             }} />
-                            <Action.Push title="Invite team member" target={<InviteTeamMember didInviteNewUser={(user) => {
-                                setAllInvitedUsers([...allInvitedUsers, user]);
-                            }} />} />
+                            {inviteAction()}
                         </ActionPanel>
                     }
                     />

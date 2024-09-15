@@ -1,5 +1,5 @@
 
-import { List, ActionPanel, Action, Image, Icon, Color } from "@raycast/api";
+import { List, ActionPanel, Action, Image, Icon, Color, confirmAlert, Alert, Keyboard } from "@raycast/api";
 import { App, BuildWithBetaDetailAndBetaGroups, BetaGroup, betaBuildUsagesSchema } from "../Model/schemas";
 import BuildDetail from "./BuildDetail";
 import React, { useEffect, useMemo } from "react";
@@ -223,6 +223,42 @@ export default function BuildItem({ build, app }: BuildItemProps) {
         });
     };
 
+    const manageBetaGroupsAction = () => {
+        return <Action.Push title="Manage Beta Groups" target={<BuildDetail 
+            app={app} 
+            build={build} 
+            groupsDidChange={(groups: BetaGroup[]) => {
+                build.betaGroups = groups;
+                setBetaGroups(groups);
+            }}
+            betaStateDidChange={(betaState: string) => {
+                build.buildBetaDetails.attributes.externalBuildState = betaState
+                setExternalBuildState(betaState)
+            }}
+        />} />
+    }
+
+    const manageIndividualTestersAction = () => {
+        return <Action.Push title="Manage Individual Testers" target={<IndividualTestersList app={app} build={build} />} />
+    }
+
+    const expireBuildAction = () => {
+        return <Action title="Expire" shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
+            const oldState = build.buildBetaDetails.attributes.externalBuildState;
+            (async () => {
+                try {
+                    build.buildBetaDetails.attributes.externalBuildState = "EXPIRED";
+                    setExternalBuildState("EXPIRED");
+                    await expireBuild();
+                } catch (error) {
+                    presentError(error);
+                    build.buildBetaDetails.attributes.externalBuildState = oldState;
+                    setExternalBuildState(oldState);
+                }
+            })();
+        }} />
+    }
+
     return (
         <List.Item
             id={build.build.id}
@@ -232,21 +268,8 @@ export default function BuildItem({ build, app }: BuildItemProps) {
             actions={
             <ActionPanel>
                 {canInviteTesters() && <>
-                <Action.Push title="Manage Beta Groups" target={<BuildDetail 
-                                                                    build={build} 
-                                                                    app={app} 
-                                                                    groupsDidChange={(groups: BetaGroup[]) => {
-                                                                        build.betaGroups = groups;
-                                                                        setBetaGroups(groups);
-                                                                    }}
-                                                                    betaStateDidChange={(betaState: string) => {
-                                                                        build.buildBetaDetails.attributes.externalBuildState = betaState
-                                                                        setExternalBuildState(betaState)
-                                                                    }}
-                                                                    />
-                                                                } 
-                                                                />
-                <Action.Push title="Manage Individual Testers" target={<IndividualTestersList app={app} build={build} />} />
+                    {manageBetaGroupsAction()}
+                    {manageIndividualTestersAction()}
                 </>
             }
             {isMissingExportCompliance() && <Action title="Set is not using non-exempt encryption" onAction={async () => {
@@ -277,20 +300,7 @@ export default function BuildItem({ build, app }: BuildItemProps) {
                     }
                 })();
             }} />}
-            {!isExpired() && <Action title="Expire" onAction={async () => {
-                        const oldState = build.buildBetaDetails.attributes.externalBuildState;
-                        (async () => {
-                            try {
-                                build.buildBetaDetails.attributes.externalBuildState = "EXPIRED";
-                                setExternalBuildState("EXPIRED");
-                                await expireBuild();
-                            } catch (error) {
-                                presentError(error);
-                                build.buildBetaDetails.attributes.externalBuildState = oldState;
-                                setExternalBuildState(oldState);
-                            }
-                        })();
-                    }} />}
+            {!isExpired() && expireBuildAction()} 
             </ActionPanel>
             }  
       />

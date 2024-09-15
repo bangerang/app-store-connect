@@ -1,4 +1,4 @@
-import { Detail } from "@raycast/api";
+import { Detail, Icon } from "@raycast/api";
 import { LocalStorage, ActionPanel, Form, Action, List, useNavigation, open } from "@raycast/api";
 import React, { useEffect, useState, ReactNode } from "react";
 import fs from "fs";
@@ -33,7 +33,7 @@ console.log({data});
           app={app}
           actions={
             <ActionPanel>
-              <Action.Push title="Show Builds" target={<BuildList app={app} />} />
+              <Action.Push title="Show Builds" icon={Icon.Building} target={<BuildList app={app} />} />
             </ActionPanel>
           }
         />

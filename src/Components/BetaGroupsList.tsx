@@ -1,4 +1,4 @@
-import { Icon, List, ActionPanel, Action, confirmAlert, Alert } from "@raycast/api";
+import { Icon, List, ActionPanel, Action, confirmAlert, Alert, Keyboard } from "@raycast/api";
 import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
 import { App, betaGroupsSchema, BetaGroup } from "../Model/schemas";
 import { useEffect, useState } from "react";
@@ -51,12 +51,22 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
         }
     }
 
+    const deleteGroupAction = (group: BetaGroup) => {
+        return <Action title="Delete Group" style={Action.Style.Destructive} shortcut={Keyboard.Shortcut.Common.Remove} icon={Icon.Trash} onAction={async () => {
+            await deleteGroup(group);
+        }} />
+    }
+
+    const createNewGroupAction = () => {
+        return <Action.Push title="Create New Group" shortcut={Keyboard.Shortcut.Common.New} icon={Icon.AddPerson} target={<CreateNewGroup app={app} didCreateNewGroup={didCreateNewGroup} />} />
+    }
+
     return (
         <List 
             isLoading={isLoadingBetaGroups}
             actions={
                 <ActionPanel>
-                    <Action.Push title="Create New Group" icon={Icon.AddPerson} target={<CreateNewGroup app={app} didCreateNewGroup={didCreateNewGroup} />} />
+                    {createNewGroupAction()}
                 </ActionPanel>
             }
         >
@@ -74,10 +84,8 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
                                         <BetaGroupDetail app={app} group={betaGroup} />
                                     }
                                 />
-                                <Action.Push title="Create New Group" icon={Icon.AddPerson} target={<CreateNewGroup app={app} didCreateNewGroup={didCreateNewGroup} />} />
-                                <Action title="Delete Group" style={Action.Style.Destructive} icon={Icon.Trash} onAction={async () => {
-                                    await deleteGroup(betaGroup);
-                                }} />
+                                {createNewGroupAction()}
+                                {deleteGroupAction(betaGroup)}
                             </ActionPanel>
                         }
                     />
@@ -98,10 +106,8 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
                                     }
                                 />
                                 <Action.Push title="Manage Builds" icon={Icon.Building} target={<InternalBetaGroupBuilds group={betaGroup} app={app} />}/>
-                                <Action.Push title="Create New Group" icon={Icon.AddPerson} target={<CreateNewGroup app={app} didCreateNewGroup={didCreateNewGroup} />} />
-                                <Action title="Delete Group" icon={Icon.Trash} onAction={async () => {
-                                    await deleteGroup(betaGroup);
-                                }} />
+                                {createNewGroupAction()}
+                                {deleteGroupAction(betaGroup)}
                                 
                             </ActionPanel>
                         }

@@ -3,7 +3,7 @@
   "name": "app-store-connect",
   "title": "App Store Connect",
   "description": "Perform tasks from App Store Connect",
-  "icon": "command-icon.png",
+  "icon": "Group4.png",
   "author": "johanthorell",
   "categories": [
     "Developer Tools"
@@ -12,13 +12,13 @@
   "commands": [
     {
       "name": "showApps",
-      "title": "Show Apps",
+      "title": "Manage Apps",
       "description": "Show and manage apps",
       "mode": "view"
     },
     {
       "name": "testFlightBuilds",
-      "title": "Show Builds",
+      "title": "Manage Builds",
       "description": "Show and manage builds",
       "mode": "view"
     },
@@ -30,19 +30,19 @@
     },
     {
       "name": "showGroups",
-      "title": "Show Beta Groups",
+      "title": "Manage Beta Groups",
       "description": "Show and manage beta groups",
       "mode": "view"
     },
     {
       "name": "teamMembers",
-      "title": "Show Team Members",
+      "title": "Manage Team Members",
       "description": "Show and manage team members",
       "mode": "view"
     },
     {
       "name": "manageTeams",
-      "title": "Show Teams",
+      "title": "Manage Teams",
       "description": "Show and manage teams",
       "mode": "view"
     }

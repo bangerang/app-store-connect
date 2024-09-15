@@ -1,4 +1,4 @@
-import { ActionPanel, Action, List } from "@raycast/api";
+import { ActionPanel, Action, List, Icon } from "@raycast/api";
 import { useState} from "react";
 import { useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
 import { App, appSchemas } from "./Model/schemas";
@@ -28,7 +28,7 @@ const { data, isLoading } = useAppStoreConnectApi(path, (response) => {
           app={app}
           actions={
             <ActionPanel>
-                <Action.Push title="Show Groups" target={<BetaGroupsList app={app} />} />
+                <Action.Push title="Show Groups" icon={Icon.TwoPeople} target={<BetaGroupsList app={app} />} />
             </ActionPanel>
           }
         />

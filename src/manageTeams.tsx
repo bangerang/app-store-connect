@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, Icon, showToast, Toast } from "@raycast/api";
+import { List, ActionPanel, Action, Icon, showToast, Toast, Keyboard } from "@raycast/api";
 import { useTeams, Team } from "./Model/useTeams";
 import { useEffect, useState } from "react";
 import { confirmAlert, Alert } from "@raycast/api";
@@ -70,7 +70,7 @@ export default function Command() {
                     setTeams([...teams, team]);
                     selectCurrentTeam(team);
                 }}/>} />
-                <Action title="Delete Team" style={Action.Style.Destructive} icon={Icon.Trash} onAction={() => {
+                <Action title="Delete Team" shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} icon={Icon.Trash} onAction={() => {
                   _deleteTeam(team);
                 }} />
               </ActionPanel>
