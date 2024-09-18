@@ -324,7 +324,7 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
                     <Form.TagPicker.Item value={bg.id} title={bg.attributes.firstName + " " + bg.attributes.lastName + ` (${bg.attributes.email})`} key={bg.id} icon={Icon.Person} />
                 ))}
             </Form.TagPicker>
-            <Form.TextArea id="externalTesters" title="Add New Testers" icon={Icon.AddPerson} value={externalTesters} onChange={setExternalTesters} placeholder="New testers in CSV format" info="External testers must be in the format: first name, last name, and email address. Example: John,Doe,john@example.com,Jane,Doe,jane@example.com" />
+            <Form.TextArea id="externalTesters" title="Add New Testers" value={externalTesters} onChange={setExternalTesters} placeholder="New testers in CSV format" info="External testers must be in the format: first name, last name, and email address. Example: John,Doe,john@example.com,Jane,Doe,jane@example.com" />
             <Form.FilePicker title="Import from CSV" id="files" allowMultipleSelection={false} info="Import testers from a CSV file. The CSV file must be in the format: first name, last name, and email address" />
             <Form.TextArea
                     id="description" 

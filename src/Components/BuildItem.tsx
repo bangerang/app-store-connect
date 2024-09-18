@@ -231,7 +231,7 @@ export default function BuildItem({ build, app }: BuildItemProps) {
                 build.betaGroups = groups;
                 setBetaGroups(groups);
             }}
-            betaStateDidChange={(betaState: string) => {
+            betaStateDidChange={(betaState: any) => {
                 build.buildBetaDetails.attributes.externalBuildState = betaState
                 setExternalBuildState(betaState)
             }}

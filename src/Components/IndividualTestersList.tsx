@@ -53,7 +53,7 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                     title={tester.attributes.firstName + " " + tester.attributes.lastName}
                     subtitle={tester.attributes.email || ""}
                     accessories={[
-                        { text: tester.attributes.betaTesterState }
+                        { text: tester.attributes.state }
                     ]}
                     actions={
                         <ActionPanel>

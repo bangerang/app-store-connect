@@ -151,7 +151,7 @@ export default function BetaGroupDetail({ app, group }: Props) {
         >
                 {testers?.map((tester: BetaTester) => (
                     <List.Item
-                        title={tester.attributes.inviteType === "PUBLIC_LINK" ? tester.attributes.firstName : tester.attributes.firstName + " " + tester.attributes.lastName}
+                        title={(tester.attributes.inviteType === "PUBLIC_LINK" ? tester.attributes.firstName : tester.attributes.firstName + " " + tester.attributes.lastName) ?? ""}
                         subtitle={tester.attributes.inviteType === "PUBLIC_LINK" ? "Public link" ?? "" : tester.attributes.email ?? ""}
                         key={tester.id}
                         icon={{ source: Icon.Person }}
