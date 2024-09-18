@@ -122,6 +122,13 @@ export default function BetaGroupDetail({ app, group }: Props) {
         }} />
     }
 
+    const copyAction = (user: BetaTester) => {
+        return <>
+            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} /> 
+            <Action.CopyToClipboard title="Copy Email" shortcut={{ modifiers: ["cmd", "shift"], key: "." }} content={user.attributes.email ?? ""} />
+        </>
+    }
+
     return (
         <List 
             isLoading={isLoadingBetaGroup || isLoadingBetaTesterUsages}
@@ -151,10 +158,11 @@ export default function BetaGroupDetail({ app, group }: Props) {
                         accessories={listAccessory(tester)}
                         actions={
                             <ActionPanel>
+                                {copyAction(tester)}
+                                {removeTesterAction(tester)}
                                 {addNewTesterAction()}
                                 {addMultipleTestersAction()}
                                 {manageBuildsAction()}
-                                {removeTesterAction(tester)}
                             </ActionPanel>
                         }
                     />

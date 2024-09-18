@@ -1,4 +1,4 @@
-import { List, ActionPanel, Action, confirmAlert, Alert, Icon} from "@raycast/api";
+import { List, ActionPanel, Action, confirmAlert, Alert, Icon, Keyboard } from "@raycast/api";
 import { fetchAppStoreConnect, useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
 import { App, BuildWithBetaDetailAndBetaGroups, betaTestersSchema } from "../Model/schemas";
 import { BetaTester } from "../Model/schemas";
@@ -20,6 +20,13 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
     useEffect(() => {
         setTesters(data || []);
     }, [data]);
+
+    const copyAction = (user: BetaTester) => {
+        return <>
+            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} /> 
+            <Action.CopyToClipboard title="Copy Email" shortcut={{ modifiers: ["cmd", "shift"], key: "." }} content={user.attributes.email ?? ""} />
+        </>
+    }
 
     return (
         <List 
@@ -50,6 +57,7 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                     ]}
                     actions={
                         <ActionPanel>
+                            {copyAction(tester)}
                             <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester 
                                                                             app={app} 
                                                                             build={build} 
