@@ -23,27 +23,27 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
 
     const copyAction = (user: BetaTester) => {
         return <>
-            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} /> 
+            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} />
             <Action.CopyToClipboard title="Copy Email" shortcut={{ modifiers: ["cmd", "shift"], key: "." }} content={user.attributes.email ?? ""} />
         </>
     }
 
     return (
-        <List 
+        <List
             isLoading={isLoading}
             actions={
                 <ActionPanel>
-                    <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester 
-                                                                    app={app} 
-                                                                    build={build}
-                                                                    didUpdateExistingTesters={(newTesters) => {
-                                                                        setTesters(testers.concat(newTesters));
-                                                                    }}
-                                                                    didUpdateNewTesters={(newTesters) => {
-                                                                        setTesters(testers.concat(newTesters));
-                                                                    }}
-                                                                />
-                                                                } 
+                    <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester
+                        app={app}
+                        build={build}
+                        didUpdateExistingTesters={(newTesters) => {
+                            setTesters(testers.concat(newTesters));
+                        }}
+                        didUpdateNewTesters={(newTesters) => {
+                            setTesters(testers.concat(newTesters));
+                        }}
+                    />
+                    }
                     />
                 </ActionPanel>
             }>
@@ -58,20 +58,20 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                     actions={
                         <ActionPanel>
                             {copyAction(tester)}
-                            <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester 
-                                                                            app={app} 
-                                                                            build={build} 
-                                                                            didUpdateExistingTesters={(newTesters) => {
-                                                                                setTesters(testers.concat(newTesters));
-                                                                            }} 
-                                                                            didUpdateNewTesters={(newTesters) => {
-                                                                                setTesters(testers.concat(newTesters));
-                                                                            }}
-                                                                        />} 
+                            <Action.Push title="Add new testers" icon={Icon.AddPerson} target={<AddIndividualTester
+                                app={app}
+                                build={build}
+                                didUpdateExistingTesters={(newTesters) => {
+                                    setTesters(testers.concat(newTesters));
+                                }}
+                                didUpdateNewTesters={(newTesters) => {
+                                    setTesters(testers.concat(newTesters));
+                                }}
+                            />}
                             />
                             <Action title="Remove tester" style={Action.Style.Destructive} onAction={() => {
                                 (async () => {
-                                    if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
+                                    if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive } })) {
                                         setTesters(testers.filter(t => t.id !== tester.id));
                                         await fetchAppStoreConnect(`/betaTesters/${tester.id}/relationships/builds`, "DELETE", {
                                             data: [{
@@ -87,6 +87,5 @@ export default function IndividualTestersList({ build, app }: UpdateIndividualTe
                 />
             ))}
         </List>
-    ) 
+    )
 }
-  

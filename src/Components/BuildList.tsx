@@ -46,9 +46,9 @@ export default function BuildList({ app }: BuildListProps) {
     }, [preReleaseVersions]);
 
     useEffect(() => {
-      if (selectedVersion !== undefined ) {
-        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
-      }
+        if (selectedVersion !== undefined) {
+            setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
+        }
     }, [selectedVersion])
 
     useEffect(() => {
@@ -76,40 +76,38 @@ export default function BuildList({ app }: BuildListProps) {
                 return appStoreVersion.platform + " " + appStoreVersion.version;
         }
     }
-    
-      return (
-          <List
+
+    return (
+        <List
             pagination={pagination}
             isLoading={isLoadingApp || isLoadingPreReleaseVersions}
             searchBarAccessory={
                 <List.Dropdown
-                tooltip="Select App Version"
-                value={platformWithVersion(selectedVersion)}
-                onChange={(newValue) => {
-                    if (versions === undefined) {
-                        return;
-                    }
-                    setBuildsPath("");
-                    // setBuilds([]);
-                    const newVersion = versions.find(version => version.id === newValue);
-                    console.log("newVersion", newVersion);
-                    setSelectedVersion(newVersion);
-                }}
-              >
-                {(versions ?? [])?.map((version: VersionWithPlatform) => (
-                    <List.Dropdown.Item title={platformWithVersion(version)} value={version.id} />
-                ))}
-              </List.Dropdown>
+                    tooltip="Select App Version"
+                    value={platformWithVersion(selectedVersion)}
+                    onChange={(newValue) => {
+                        if (versions === undefined) {
+                            return;
+                        }
+                        setBuildsPath("");
+                        const newVersion = versions.find(version => version.id === newValue);
+                        setSelectedVersion(newVersion);
+                    }}
+                >
+                    {(versions ?? [])?.map((version: VersionWithPlatform) => (
+                        <List.Dropdown.Item title={platformWithVersion(version)} value={version.id} />
+                    ))}
+                </List.Dropdown>
             }
-          >
-        <List.Section title={app.attributes.name}>
-          {builds?.map((item: BuildWithBetaDetailAndBetaGroups) => (
-            <BuildItem
-                build={item}
-                app={app}
-            />
-          ))}
-          </List.Section>
+        >
+            <List.Section title={app.attributes.name}>
+                {builds?.map((item: BuildWithBetaDetailAndBetaGroups) => (
+                    <BuildItem
+                        build={item}
+                        app={app}
+                    />
+                ))}
+            </List.Section>
         </List>
-      );
-    }
+    );
+}

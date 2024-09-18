@@ -37,7 +37,7 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
     });
 
     const [versions, setVersions] = useState<VersionWithPlatform[] | undefined>(undefined);
-    
+
     const [buildIDs, setBuildIDs] = useState<string[] | undefined>(undefined);
 
     const [submitIsLoading, setSubmitIsLoading] = useState<boolean>(false);
@@ -56,14 +56,14 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
     }, [preReleaseVersions]);
 
     useEffect(() => {
-      if (selectedVersion !== undefined ) {
-        const selected = versions?.find((version) => version.id === selectedVersion);
-        if (!selected) {
-            return;
+        if (selectedVersion !== undefined) {
+            const selected = versions?.find((version) => version.id === selectedVersion);
+            if (!selected) {
+                return;
+            }
+            setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selected.platform}&filter[preReleaseVersion.version]=${selected.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
+            setCurrentBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selected.platform}&filter[preReleaseVersion.version]=${selected.version}&filter[app]=${app.id}&filter[betaGroups]=${group.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
         }
-        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selected.platform}&filter[preReleaseVersion.version]=${selected.version}&filter[app]=${app.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
-        setCurrentBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selected.platform}&filter[preReleaseVersion.version]=${selected.version}&filter[app]=${app.id}&filter[betaGroups]=${group.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
-      }
     }, [selectedVersion])
 
     useEffect(() => {
@@ -72,7 +72,7 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
         }
     }, [currentBuilds]);
 
-    const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
+    const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
         if (!appStoreVersion) {
             return "";
         }
@@ -124,78 +124,79 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
     };
 
     return (
-        <Form 
+        <Form
             isLoading={isLoadingApp || isLoadingPreReleaseVersions || isLoadingCurrentBuilds || submitIsLoading}
             actions={
                 <ActionPanel>
-                    <Action.SubmitForm 
+                    <Action.SubmitForm
                         title={submitTitle()}
                         onSubmit={(values: { builds: string[] }) => {
                             setSubmitIsLoading(true);
                             (async () => {
                                 try {
-                                const removed = currentBuilds?.filter((build) => !values.builds.includes(build.build.id));
-                                const added = values.builds.filter((build) => !currentBuilds?.find((currentBuild) => currentBuild.build.id === build));
-                                if (removed && removed.length > 0) {                                    
-                                    for (const build of removed) {
-                                        await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds `, "DELETE", {
-                                            data: [{
-                                                type: "builds",
-                                                id: build.build.id
-                                            }]
-                                        });
+                                    const removed = currentBuilds?.filter((build) => !values.builds.includes(build.build.id));
+                                    const added = values.builds.filter((build) => !currentBuilds?.find((currentBuild) => currentBuild.build.id === build));
+                                    if (removed && removed.length > 0) {
+                                        for (const build of removed) {
+                                            await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds `, "DELETE", {
+                                                data: [{
+                                                    type: "builds",
+                                                    id: build.build.id
+                                                }]
+                                            });
+                                        }
                                     }
-                                }
-                                if (added && added.length > 0) {
-                                    for (const build of added) {
-                                        await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds `, "POST", {
-                                            data: [{
-                                                type: "builds",
-                                                id: build
-                                            }]
-                                        });
+                                    if (added && added.length > 0) {
+                                        for (const build of added) {
+                                            await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds `, "POST", {
+                                                data: [{
+                                                    type: "builds",
+                                                    id: build
+                                                }]
+                                            });
+                                        }
                                     }
+                                    await submitForBetaReview();
+                                    setSubmitIsLoading(false);
+                                    showToast({
+                                        style: Toast.Style.Success,
+                                        title: "Success!",
+                                        message: "Updated",
+                                    });
+                                    if (removed && removed.length > 0) {
+                                        didRemoveBuilds(removed);
+                                    }
+                                    if (builds && added && added.length > 0) {
+                                        didAddBuilds(builds.filter((build) => added.includes(build.build.id)));
+                                    }
+
+                                } catch (error) {
+                                    setSubmitIsLoading(false);
+                                    presentError(error);
                                 }
-                                await submitForBetaReview();
-                                setSubmitIsLoading(false);
-                                showToast({
-                                    style: Toast.Style.Success,
-                                    title: "Success!",
-                                    message: "Updated",
-                                });
-                                if (removed && removed.length > 0) {
-                                    didRemoveBuilds(removed);
-                                }
-                                if (builds && added && added.length > 0) {
-                                    didAddBuilds(builds.filter((build) => added.includes(build.build.id)));
-                                }
-                                
-                            } catch (error) {
-                                setSubmitIsLoading(false);
-                                presentError(error);
-                            }
                             })();
                         }
-                    }
+                        }
                     />
                 </ActionPanel>
-            }   
+            }
         >
             <Form.Dropdown
                 id="version"
                 title="Select a version"
                 value={selectedVersion}
                 onChange={(version) => {
-                    setSelectedVersion(version)}
+                    setSelectedVersion(version)
+                }
 
                 }>
-                    {versions?.map((version) => (
-                        <Form.Dropdown.Item
-                            key={version.id}
-                            title={platformWithVersion(version)}
-                            value={version.id}
-                        />
-                    ))}
+                {versions?.map((version) => (
+                    <Form.Dropdown.Item
+                        key={version.id}
+                        title={platformWithVersion(version)}
+                        value={version.id}
+                    />
+                ))}
             </Form.Dropdown>
             <Form.TagPicker
                 id="builds"
@@ -205,13 +206,13 @@ export default function ManageInternalBuilds({ app, group, didAddBuilds, didRemo
                     setBuildIDs(buildIDs);
                 }}
             >
-            {builds?.map((build) => (
-                <Form.TagPicker.Item
-                    key={build.build.id}
-                    title={"Build " + build.build.attributes.version}
-                    value={build.build.id}
-                />
-            ))}
+                {builds?.map((build) => (
+                    <Form.TagPicker.Item
+                        key={build.build.id}
+                        title={"Build " + build.build.attributes.version}
+                        value={build.build.id}
+                    />
+                ))}
             </Form.TagPicker>
         </Form>
     )

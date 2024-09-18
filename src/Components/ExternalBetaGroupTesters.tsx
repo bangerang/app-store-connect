@@ -77,107 +77,107 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
     const addNewUsers = async (externalTesters: string) => {
         if (externalTesters.length === 0) return [];
         setSubmitIsLoading(true);
-            const values = externalTesters.split(',').map(item => item.trim());
-            
-            const addedUsers: BetaTester[] = [];
-            const errors = [];
-            for (let i = 0; i < values.length; i += 3) {
-                try {
-                    if (i + 2 < values.length) {
-                        const userToAdd = {
-                            type: "betaTesters",
-                            attributes: {
-                                firstName: values[i],
-                                lastName: values[i + 1],
-                                email: values[i + 2]
-                            },
-                            relationships: {
-                                betaGroups: {
-                                    data: [{
-                                        type: "betaGroups",
-                                        id: group.id
-                                    }]
-                                }
+        const values = externalTesters.split(',').map(item => item.trim());
+
+        const addedUsers: BetaTester[] = [];
+        const errors = [];
+        for (let i = 0; i < values.length; i += 3) {
+            try {
+                if (i + 2 < values.length) {
+                    const userToAdd = {
+                        type: "betaTesters",
+                        attributes: {
+                            firstName: values[i],
+                            lastName: values[i + 1],
+                            email: values[i + 2]
+                        },
+                        relationships: {
+                            betaGroups: {
+                                data: [{
+                                    type: "betaGroups",
+                                    id: group.id
+                                }]
                             }
                         }
-                        const response = await fetchAppStoreConnect(`/betaTesters`, "POST", {
-                            data: userToAdd
-                        });
-                        if (response && response.ok) {
-                            const json = await response.json();
-                            addedUsers.push({
-                                type: "betaTesters",
-                                id: json.data.id,
-                                attributes: {
-                                    firstName: json.data.attributes.firstName,
-                                    lastName: json.data.attributes.lastName,
-                                    email: json.data.attributes.email,
-                                    inviteType: json.data.inviteType,
-                                    state: json.data.state,
-                                }
-                            } as BetaTester);
-                        }
                     }
-                } catch (error) {
-                    presentError(error);
+                    const response = await fetchAppStoreConnect(`/betaTesters`, "POST", {
+                        data: userToAdd
+                    });
+                    if (response && response.ok) {
+                        const json = await response.json();
+                        addedUsers.push({
+                            type: "betaTesters",
+                            id: json.data.id,
+                            attributes: {
+                                firstName: json.data.attributes.firstName,
+                                lastName: json.data.attributes.lastName,
+                                email: json.data.attributes.email,
+                                inviteType: json.data.inviteType,
+                                state: json.data.state,
+                            }
+                        } as BetaTester);
+                    }
                 }
+            } catch (error) {
+                presentError(error);
             }
-            return addedUsers;
+        }
+        return addedUsers;
     };
 
     const addFromCSV = async (files: string[]) => {
         if (files.length === 0) return [];
         const file = files[0];
-        if (!fs.existsSync(file) && !fs.lstatSync(file).isFile()) { 
+        if (!fs.existsSync(file) && !fs.lstatSync(file).isFile()) {
             return [];
         }
         const errors = [];
-        
-            const fileContent = fs.readFileSync(file, "utf8");
-            const values = fileContent.split(',').map(item => item.trim());
-            const addedUsers: BetaTester[] = [];
-            for (let i = 0; i < values.length; i += 3) {
-                try {
-                    if (i + 2 < values.length) {
-                        const userToAdd = {
-                            type: "betaTesters",
-                            attributes: {
-                                firstName: values[i],
-                                lastName: values[i + 1],
-                                email: values[i + 2]
-                            },
-                            relationships: {
-                                betaGroups: {
-                                    data: [{
-                                        type: "betaGroups",
-                                        id: group.id
-                                    }]
-                                }
+
+        const fileContent = fs.readFileSync(file, "utf8");
+        const values = fileContent.split(',').map(item => item.trim());
+        const addedUsers: BetaTester[] = [];
+        for (let i = 0; i < values.length; i += 3) {
+            try {
+                if (i + 2 < values.length) {
+                    const userToAdd = {
+                        type: "betaTesters",
+                        attributes: {
+                            firstName: values[i],
+                            lastName: values[i + 1],
+                            email: values[i + 2]
+                        },
+                        relationships: {
+                            betaGroups: {
+                                data: [{
+                                    type: "betaGroups",
+                                    id: group.id
+                                }]
                             }
                         }
-                        const response = await fetchAppStoreConnect(`/betaTesters`, "POST", {
-                            data: userToAdd
-                        });
-                        if (response && response.ok) {
-                            const json = await response.json();
-                            addedUsers.push({
-                                type: "betaTesters",
-                                id: json.data.id,
-                                attributes: {
-                                    firstName: json.data.attributes.firstName,
-                                    lastName: json.data.attributes.lastName,
-                                    email: json.data.attributes.email,
-                                    inviteType: json.data.inviteType,
-                                    state: json.data.state,
-                                }
-                            } as BetaTester);
-                        }
                     }
-                } catch (error) {
-                    presentError(error);
+                    const response = await fetchAppStoreConnect(`/betaTesters`, "POST", {
+                        data: userToAdd
+                    });
+                    if (response && response.ok) {
+                        const json = await response.json();
+                        addedUsers.push({
+                            type: "betaTesters",
+                            id: json.data.id,
+                            attributes: {
+                                firstName: json.data.attributes.firstName,
+                                lastName: json.data.attributes.lastName,
+                                email: json.data.attributes.email,
+                                inviteType: json.data.inviteType,
+                                state: json.data.state,
+                            }
+                        } as BetaTester);
+                    }
                 }
+            } catch (error) {
+                presentError(error);
             }
-            return addedUsers;
+        }
+        return addedUsers;
     }
 
     const { handleSubmit, itemProps, setValue } = useForm<ExternalBetaGroupTestersFormValues>({
@@ -186,7 +186,7 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
             (async () => {
                 let added: BetaTester[] = [];
                 let errors: string[] = [];
-                const addedExisting = await addRemoveExternalTesters(values.testers); 
+                const addedExisting = await addRemoveExternalTesters(values.testers);
                 if (Array.isArray(addedExisting)) {
                     added = addedExisting;
                 } else if (typeof addedExisting === "string") {
@@ -218,14 +218,14 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
             })();
         },
         validation: {},
-      });
+    });
     useEffect(() => {
-            if (allUsers) {
-                if (!allUsers) {
-                    return;
-                }
-                setBetaUsersPath(`/betaTesters?filter[email]=${allUsers.map((user) => user.attributes.username).join(",")}&filter[betaGroups]=${group.id}`);
+        if (allUsers) {
+            if (!allUsers) {
+                return;
             }
+            setBetaUsersPath(`/betaTesters?filter[email]=${allUsers.map((user) => user.attributes.username).join(",")}&filter[betaGroups]=${group.id}`);
+        }
     }, [allUsers]);
 
     useEffect(() => {
@@ -236,7 +236,7 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
     }, [betaUsers, allUsers]);
 
     return (
-        <Form 
+        <Form
             isLoading={isLoadingUsers || isLoadingBetaUsers || submitIsLoading}
             actions={
                 <ActionPanel>
@@ -246,7 +246,7 @@ export default function ExternalBetaGroupTesters({ group, app, didUpdateNewTeste
         >
             <Form.TagPicker id="testers" title="Add Existing Testers" value={itemProps.testers.value} onChange={(newValue) => {
                 setValue("testers", newValue);
-            }} > 
+            }} >
                 {availableUsers?.map((bg) => (
                     <Form.TagPicker.Item value={bg.id} title={bg.attributes.firstName + " " + bg.attributes.lastName + ` (${bg.attributes.username})`} key={bg.id} icon={Icon.Person} />
                 ))}

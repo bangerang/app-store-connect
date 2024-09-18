@@ -1,5 +1,5 @@
 
-import {ActionPanel, Action, List, confirmAlert, Alert, Keyboard, Icon, Clipboard } from "@raycast/api";
+import { ActionPanel, Action, List, confirmAlert, Alert, Keyboard, Icon, Clipboard } from "@raycast/api";
 import { useEffect, useState } from "react";
 import { fetchAppStoreConnect, useAppStoreConnectApi } from "./Hooks/useAppStoreConnect";
 import { UserInvitation, userInvitationsSchemas } from "./Model/schemas";
@@ -10,8 +10,8 @@ import { presentError } from "./Utils/utils";
 import EditTeamMember from "./Components/EditTeamMember";
 
 export default function Command() {
-    const [path, setPath] = useState<string | undefined >(undefined)
-    const [invitedPath, setInvitedPath] = useState<string | undefined >(undefined)
+    const [path, setPath] = useState<string | undefined>(undefined)
+    const [invitedPath, setInvitedPath] = useState<string | undefined>(undefined)
 
     const { data: fetchedUsers, isLoading, pagination } = useAppStoreConnectApi(path, (response) => {
         return usersSchema.safeParse(response.data).data ?? null;
@@ -81,17 +81,17 @@ export default function Command() {
 
     const copyAction = (user: User | UserInvitation) => {
         return <>
-            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} /> 
+            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} />
             <Action.CopyToClipboard title="Copy Email" shortcut={{ modifiers: ["cmd", "shift"], key: "." }} content={user.type === "userInvitations" ? user.attributes.email : user.attributes.username} />
         </>
     }
 
     return (
         <SignIn didSignIn={() => {
-        setPath("/users")
-        setInvitedPath("/userInvitations")
+            setPath("/users")
+            setInvitedPath("/userInvitations")
         }}>
-            <List 
+            <List
                 isLoading={isLoading || isLoadingInvited}
                 pagination={pagination}
                 actions={
@@ -101,80 +101,80 @@ export default function Command() {
                 }
             >
                 {(allInvitedUsers || []).length > 0 && (
-                <List.Section title="Invited">
-                    {allInvitedUsers.map((user: UserInvitation) => (
-                        <List.Item
-                        title={user.attributes.firstName + " " + user.attributes.lastName}
-                        subtitle={user.attributes.email}
-                        accessories={[
-                            { text: rolesString(user.attributes.roles), tooltip: "Roles" }
-                        ]}
-                        actions={
-                            <ActionPanel>
-                                {copyAction(user)}
-                                <Action title="Revoke" icon={Icon.Trash} shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
-                                    if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Revoke", style: Alert.ActionStyle.Destructive }})) { 
-                                        const revoked = allInvitedUsers.find((user) => user.id === user.id);
-                                        try {
-                                            setAllInvitedUsers(allInvitedUsers.filter((user) => user.id !== user.id));
-                                            await fetchAppStoreConnect(`/userInvitations/${user.id}`, "DELETE");
-                                        } catch (error) {
-                                            if (revoked) {
-                                                setAllInvitedUsers([...allInvitedUsers, revoked]);
+                    <List.Section title="Invited">
+                        {allInvitedUsers.map((user: UserInvitation) => (
+                            <List.Item
+                                title={user.attributes.firstName + " " + user.attributes.lastName}
+                                subtitle={user.attributes.email}
+                                accessories={[
+                                    { text: rolesString(user.attributes.roles), tooltip: "Roles" }
+                                ]}
+                                actions={
+                                    <ActionPanel>
+                                        {copyAction(user)}
+                                        <Action title="Revoke" icon={Icon.Trash} shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
+                                            if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Revoke", style: Alert.ActionStyle.Destructive } })) {
+                                                const revoked = allInvitedUsers.find((user) => user.id === user.id);
+                                                try {
+                                                    setAllInvitedUsers(allInvitedUsers.filter((user) => user.id !== user.id));
+                                                    await fetchAppStoreConnect(`/userInvitations/${user.id}`, "DELETE");
+                                                } catch (error) {
+                                                    if (revoked) {
+                                                        setAllInvitedUsers([...allInvitedUsers, revoked]);
+                                                    }
+                                                    presentError(error);
+                                                }
                                             }
-                                            presentError(error);
-                                        }
-                                    }  
-                                }} />
-                            {inviteAction()}
-                            </ActionPanel>
-                        }
-                        />
-                    ))}
-                </List.Section>
+                                        }} />
+                                        {inviteAction()}
+                                    </ActionPanel>
+                                }
+                            />
+                        ))}
+                    </List.Section>
                 )}
                 <List.Section title="Team members">
                     {allUsers?.map((user: User) => (
                         <List.Item
-                            title={makeTitle(user)}  
+                            title={makeTitle(user)}
                             key={user.id}
                             subtitle={user.attributes.username}
                             accessories={[
                                 { text: rolesString(user.attributes.roles), tooltip: "Roles" }
                             ]}
-                        actions={
-                            <ActionPanel>
-                                <Action.Push title="Edit User" icon={Icon.Person} shortcut={Keyboard.Shortcut.Common.Edit} target={<EditTeamMember user={user} userChanged={(newUser) => {
-                                    setAllUsers(allUsers.map((user) => {
-                                        if (user.id === newUser.id) {
-                                            return newUser;
-                                        }
-                                        return user;
-                                    }));
-                                }} />} />
-                                {copyAction(user)}
-                                <Action title="Remove" icon={Icon.Trash} shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
-                                    if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
-                                        const removed = allUsers.find((user) => user.id === user.id);
-                                        try {
-                                            setAllUsers(allUsers.filter((user) => user.id !== user.id));
-                                            await fetchAppStoreConnect(`/users/${user.id}`, "DELETE");
-                                        } catch (error) {
-                                            if (removed) {
-                                                setAllUsers([...allUsers, removed]);
+                            actions={
+                                <ActionPanel>
+                                    <Action.Push title="Edit User" icon={Icon.Person} shortcut={Keyboard.Shortcut.Common.Edit} target={<EditTeamMember user={user} userChanged={(newUser) => {
+                                        setAllUsers(allUsers.map((user) => {
+                                            if (user.id === newUser.id) {
+                                                return newUser;
                                             }
-                                            presentError(error);
+                                            return user;
+                                        }));
+                                    }} />} />
+                                    {copyAction(user)}
+                                    <Action title="Remove" icon={Icon.Trash} shortcut={Keyboard.Shortcut.Common.Remove} style={Action.Style.Destructive} onAction={async () => {
+                                        if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive } })) {
+                                            const removed = allUsers.find((user) => user.id === user.id);
+                                            try {
+                                                setAllUsers(allUsers.filter((user) => user.id !== user.id));
+                                                await fetchAppStoreConnect(`/users/${user.id}`, "DELETE");
+                                            } catch (error) {
+                                                if (removed) {
+                                                    setAllUsers([...allUsers, removed]);
+                                                }
+                                                presentError(error);
+                                            }
                                         }
-                                    }  
-                                }} />
-                                {inviteAction()}
-                            </ActionPanel>
-                        }
+                                    }} />
+                                    {inviteAction()}
+                                </ActionPanel>
+                            }
                         />
                     ))}
                 </List.Section>
             </List>
         </SignIn>
     );
-    }
+}
 

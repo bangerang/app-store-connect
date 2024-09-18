@@ -14,8 +14,7 @@ export class ATCError extends Error {
   ) {
     super(title);
     this.name = this.constructor.name;
-    
-    // Maintain proper stack trace
+
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, ATCError);
     }
@@ -78,15 +77,14 @@ export function useAppStoreConnectApi<T>(path: string | undefined, mapResponse: 
           setPagination({
             pageSize: json.meta.paging.limit,
             hasMore: false,
-            onLoadMore: (page) => {}
+            onLoadMore: (page) => { }
           });
         }
       }
       const item = mapResponse(json);
-      setCurrentData(item); 
+      setCurrentData(item);
       setIsLoading(false);
     } catch (error) {
-      console.log("error", {path}, error);
       setError(error);
       setIsLoading(false);
     }
@@ -135,11 +133,11 @@ function decodeBase64(encodedString: string) {
   // Check if we're in a Node.js environment
   if (typeof Buffer !== 'undefined') {
     return Buffer.from(encodedString, 'base64').toString('utf-8');
-  } 
+  }
   // Check if we're in a browser environment
   else if (typeof atob === 'function') {
     return atob(encodedString);
-  } 
+  }
   else {
     throw new Error('Unable to decode Base64: environment not supported');
   }
@@ -149,11 +147,11 @@ function base64EncodePrivateKey(privateKey: string) {
   // Check if we're in a browser environment
   if (typeof btoa === 'function') {
     return btoa(privateKey);
-  } 
+  }
   // For Node.js environment
   else if (typeof Buffer !== 'undefined') {
     return Buffer.from(privateKey).toString('base64');
-  } 
+  }
   else {
     throw new Error('Unable to base64 encode: environment not supported');
   }
@@ -165,11 +163,11 @@ const getBearerToken = async () => {
   const issuerId = await LocalStorage.getItem<string>("issuerID");
   const encoded = await LocalStorage.getItem<string>("privateKey");
   if (!apiKey || !issuerId || !encoded) {
-      showToast(Toast.Style.Failure, "Missing API credentials");
-      return;
+    showToast(Toast.Style.Failure, "Missing API credentials");
+    return;
   }
   const privateKey = decodeBase64(encoded);
-  
+
   const secret = await importPKCS8(privateKey, alg);
   const jwt = await new SignJWT({})
     .setProtectedHeader({ alg, kid: apiKey, typ: 'JWT' })
@@ -182,7 +180,6 @@ const getBearerToken = async () => {
 }
 
 export const fetchAppStoreConnect = async (path: string, method: Method = "GET", body?: any) => {
-  console.log("fetchAppStoreConnect", {path, method, body});
   const bearerToken = await getBearerToken();
   if (!bearerToken) {
     return;
@@ -200,7 +197,6 @@ export const fetchAppStoreConnect = async (path: string, method: Method = "GET",
     if ("errors" in json) {
       const errors = json.errors;
       if (errors.length > 0) {
-        console.log("errors", {path}, errors);
         throw new ATCError(errors[0].title, errors[0].detail);
       } else {
         throw new ATCError("Oh no!", "Something went wrong, error code: " + response.status);

@@ -5,18 +5,18 @@ import { useState } from "react";
 import { useAppStoreConnectApi } from "../Hooks/useAppStoreConnect";
 
 interface AppItemProps {
-    id: string;
-    app: App;
-    title: string
-    subtitle?: string;
-    accessories?: any; 
-    actions: React.ReactNode;
+  id: string;
+  app: App;
+  title: string
+  subtitle?: string;
+  accessories?: any;
+  actions: React.ReactNode;
 }
 export default function AppItem({ id, app, title, actions, subtitle, accessories }: AppItemProps) {
-const { data: builds } = useAppStoreConnectApi(`/builds?filter[app]=${app.id}&limit=1&sort=-uploadedDate`, (response) => {
-  return buildSchemas.safeParse(response.data).data ?? null;
-});
-  
+  const { data: builds } = useAppStoreConnectApi(`/builds?filter[app]=${app.id}&limit=1&sort=-uploadedDate`, (response) => {
+    return buildSchemas.safeParse(response.data).data ?? null;
+  });
+
   const iconURL = useMemo(() => {
     if (builds === null) {
       return "";
@@ -25,27 +25,28 @@ const { data: builds } = useAppStoreConnectApi(`/builds?filter[app]=${app.id}&li
       return "";
     }
     if (builds[0]?.attributes.iconAssetToken?.templateUrl) {
-        const { templateUrl, width, height } = builds[0].attributes.iconAssetToken;
-        const url = `${templateUrl
-            .replace('{w}', width.toString())
-            .replace('{h}', height.toString())
-            .replace('{f}', 'png')}`;
-        return url;
+      const { templateUrl, width, height } = builds[0].attributes.iconAssetToken;
+      const url = `${templateUrl
+        .replace('{w}', width.toString())
+        .replace('{h}', height.toString())
+        .replace('{f}', 'png')}`;
+      return url;
     } else {
-        return "";
+      return "";
     }
   }, [builds]);
 
   return (
     <List.Item
-        id={id}
-        icon={{ 
-            source: iconURL,
-            mask: Image.Mask.RoundedRectangle, }}
-        title={title}
-        subtitle={subtitle}
-        accessories={accessories}
-        actions={actions}
-  />
+      id={id}
+      icon={{
+        source: iconURL,
+        mask: Image.Mask.RoundedRectangle,
+      }}
+      title={title}
+      subtitle={subtitle}
+      accessories={accessories}
+      actions={actions}
+    />
   );
 }

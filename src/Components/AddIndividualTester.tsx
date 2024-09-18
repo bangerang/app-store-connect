@@ -17,15 +17,15 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
     const { data, isLoading } = useAppStoreConnectApi(`/builds/${build.build.id}/individualTesters`, (response) => {
         return betaTestersSchema.safeParse(response.data).data;
     });
-    
+
     const { data: allUsers, isLoading: isLoadingUsers } = useAppStoreConnectApi(`/betaTesters?filter[apps]=${app.id}`, (response) => {
         return betaTestersSchema.safeParse(response.data).data;
     });
     const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, (response) => {
         return betaBuildLocalizationsSchema.safeParse(response.data).data ?? [];
     });
-    
-    
+
+
     const [testersIDs, setTestersIDs] = useState<string[]>([]);
     const [allUsersFromApp, setAllUsersFromApp] = useState<BetaTester[]>([]);
     const [whatToTestError, setWhatToTestError] = useState<string | undefined>();
@@ -34,7 +34,7 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
     const [submitIsLoading, setSubmitIsLoading] = useState<boolean>(false);
 
     function dropWhatToTestErrorIfNeeded() {
-        if (whatToTestError !== undefined) {            
+        if (whatToTestError !== undefined) {
             setWhatToTestError(undefined);
         }
     }
@@ -47,7 +47,6 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
         }
         const usersToShow = allUsers
             .filter((user) => data.some((tester) => tester.id !== user.id));
-        console.log({usersToShow})
         setAllUsersFromApp(usersToShow);
     }, [allUsers, data]);
 
@@ -56,11 +55,11 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
         if (betaBuildLocalizations !== null && betaBuildLocalizations.length > 0) {
             setCurrentWhatToTest(betaBuildLocalizations[0].attributes.whatsNew ?? "");
         }
-        
+
     }, [betaBuildLocalizations]);
 
     useEffect(() => {
-       dropWhatToTestErrorIfNeeded();
+        dropWhatToTestErrorIfNeeded();
     }, [currentWhatToTest]);
 
     const getSubmitTitle = () => {
@@ -90,7 +89,7 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
         if (build.buildBetaDetails.attributes.externalBuildState === "READY_FOR_BETA_SUBMISSION" && (testersIDs.length > 0 || externalTesters.length > 0) || files && files.length > 0) {
             return ["SUBMIT_FOR_BETA_REVIEW"];
         }
-        
+
 
         return types;
     };
@@ -123,10 +122,10 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
             id: user.id
         }));
 
-        if (usersToAdd && usersToAdd.length === 0) { 
+        if (usersToAdd && usersToAdd.length === 0) {
             return;
         }
-            
+
         const response = await fetchAppStoreConnect(`/builds/${build.build.id}/relationships/individualTesters`, "POST", {
             data: usersToAdd
         });
@@ -143,7 +142,7 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
         setSubmitIsLoading(true);
         const usersToAdd = [];
         const values = externalTesters.split(',').map(item => item.trim());
-        
+
         const addedUsers: BetaTester[] = [];
         for (let i = 0; i < values.length; i += 3) {
             if (i + 2 < values.length) {
@@ -246,13 +245,13 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
                             id: build.build.id
                         }
                     }
-                } 
+                }
             }
         });
     };
 
     return (
-        <Form 
+        <Form
             isLoading={isLoading || isLoadingUsers || submitIsLoading || isLoadingBetaBuildLocalizations}
             actions={
                 <ActionPanel>
@@ -264,14 +263,14 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
                                     await updateWhatToTest();
                                     await addExistingUsers();
                                     await addNewUsers();
-                                    if (values.files && values.files.length > 0) {                                        
+                                    if (values.files && values.files.length > 0) {
                                         const file = values.files[0];
-                                        if (fs.existsSync(file) && fs.lstatSync(file).isFile()) { 
+                                        if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
                                             await addFromCSV(file);
                                         }
                                     }
                                     await submitForBetaReview();
-                                    setSubmitIsLoading(false); 
+                                    setSubmitIsLoading(false);
                                     showToast({
                                         style: Toast.Style.Success,
                                         title: "Success!",
@@ -280,29 +279,29 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
                                 })();
                             } else {
                                 (async () => {
-                                try {
-                                    for (const type of types) {           
-                                        switch (type) {
-                                            case "UPDATE_WHAT_TO_TEST":
-                                                await updateWhatToTest();
-                                                break;
-                                            case "ADD_EXISTING_TESTERS":
-                                                await addExistingUsers();
-                                                break;
-                                            case "ADD_NEW_TESTERS":
-                                                await addNewUsers();
-                                                break;
-                                            case "ADD_FROM_CSV":
-                                                const file = values.files[0];
-                                                if (fs.existsSync(file) && fs.lstatSync(file).isFile()) { 
-                                                    await addFromCSV(file);
-                                                }
-                                                break;
-                                        }   
+                                    try {
+                                        for (const type of types) {
+                                            switch (type) {
+                                                case "UPDATE_WHAT_TO_TEST":
+                                                    await updateWhatToTest();
+                                                    break;
+                                                case "ADD_EXISTING_TESTERS":
+                                                    await addExistingUsers();
+                                                    break;
+                                                case "ADD_NEW_TESTERS":
+                                                    await addNewUsers();
+                                                    break;
+                                                case "ADD_FROM_CSV":
+                                                    const file = values.files[0];
+                                                    if (fs.existsSync(file) && fs.lstatSync(file).isFile()) {
+                                                        await addFromCSV(file);
+                                                    }
+                                                    break;
+                                            }
+                                        }
+                                    } catch (error) {
+                                        presentError(error);
                                     }
-                                } catch (error) {
-                                    presentError(error);
-                                }
                                 })();
                                 showToast({
                                     style: Toast.Style.Success,
@@ -318,8 +317,8 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
                     }} />
                 </ActionPanel>
             }
-            >
-            <Form.TagPicker id="testers" title="Add Existing Testers" value={testersIDs} onChange={setTestersIDs} > 
+        >
+            <Form.TagPicker id="testers" title="Add Existing Testers" value={testersIDs} onChange={setTestersIDs} >
                 {allUsersFromApp?.map((bg) => (
                     <Form.TagPicker.Item value={bg.id} title={bg.attributes.firstName + " " + bg.attributes.lastName + ` (${bg.attributes.email})`} key={bg.id} icon={Icon.Person} />
                 ))}
@@ -327,20 +326,20 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
             <Form.TextArea id="externalTesters" title="Add New Testers" value={externalTesters} onChange={setExternalTesters} placeholder="New testers in CSV format" info="External testers must be in the format: first name, last name, and email address. Example: John,Doe,john@example.com,Jane,Doe,jane@example.com" />
             <Form.FilePicker title="Import from CSV" id="files" allowMultipleSelection={false} info="Import testers from a CSV file. The CSV file must be in the format: first name, last name, and email address" />
             <Form.TextArea
-                    id="description" 
-                    placeholder="What to test" 
-                    error={whatToTestError}
-                    value={currentWhatToTest} 
-                    onChange={(newValue) => setCurrentWhatToTest(newValue)} 
-                    onBlur={(event) => {
-                        const value = event.target.value;
-                        if (validateWhatToTest(value)) {
-                            dropWhatToTestErrorIfNeeded();
-                        } else {
-                            setWhatToTestError("You must specify what to test.");
-                        }
-                    }}
-                    />
+                id="description"
+                placeholder="What to test"
+                error={whatToTestError}
+                value={currentWhatToTest}
+                onChange={(newValue) => setCurrentWhatToTest(newValue)}
+                onBlur={(event) => {
+                    const value = event.target.value;
+                    if (validateWhatToTest(value)) {
+                        dropWhatToTestErrorIfNeeded();
+                    } else {
+                        setWhatToTestError("You must specify what to test.");
+                    }
+                }}
+            />
         </Form>
     );
 }

@@ -1,6 +1,6 @@
 import { Form, Icon, Action, ActionPanel, showToast, Toast } from "@raycast/api";
 import { useForm, FormValidation } from "@raycast/utils";
-import {  fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
+import { fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
 import { betaTestersSchema, App, BetaGroup, BetaTester, usersSchema, User, betaTesterSchema } from "../Model/schemas";
 import { useEffect, useState } from "react";
 import { presentError } from "../Utils/utils";
@@ -51,7 +51,7 @@ export default function AddExternalBetaTester({ group, app, didUpdateNewTester }
                     });
                     if (response && response.ok) {
                         const json = await response.json();
-                        const invited = betaTesterSchema.safeParse(json.data); 
+                        const invited = betaTesterSchema.safeParse(json.data);
                         if (invited.success) {
                             didUpdateNewTester(invited.data);
                         }
@@ -64,14 +64,14 @@ export default function AddExternalBetaTester({ group, app, didUpdateNewTester }
             })();
         },
         validation: {
-          email: FormValidation.Required,
-          firstName: FormValidation.Required,
-          lastName: FormValidation.Required,
+            email: FormValidation.Required,
+            firstName: FormValidation.Required,
+            lastName: FormValidation.Required,
         },
-      });
-        
+    });
+
     return (
-        <Form 
+        <Form
             isLoading={isLoading}
             actions={
                 <ActionPanel>

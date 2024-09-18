@@ -75,7 +75,7 @@ export default function InternalBetaGroupTesters({ group, app, didUpdateNewTeste
                         if (allUsers) {
                             didUpdateNewTesters(added);
                         }
-                        
+
                     }
                 } catch (error) {
                     setSubmitIsLoading(false);
@@ -84,21 +84,21 @@ export default function InternalBetaGroupTesters({ group, app, didUpdateNewTeste
             })();
         },
         validation: {
-          testers: (value) => {
-            value = value || [];
-            if (value.length === 0) {
-              return "You must select at least one tester";
-            }
-          },
-        },
-      });
-    useEffect(() => {
-            if (allUsers) {
-                if (!allUsers) {
-                    return;
+            testers: (value) => {
+                value = value || [];
+                if (value.length === 0) {
+                    return "You must select at least one tester";
                 }
-                setBetaUsersPath(`/betaTesters?filter[email]=${allUsers.map((user) => user.attributes.username).join(",")}&filter[betaGroups]=${group.id}`);
+            },
+        },
+    });
+    useEffect(() => {
+        if (allUsers) {
+            if (!allUsers) {
+                return;
             }
+            setBetaUsersPath(`/betaTesters?filter[email]=${allUsers.map((user) => user.attributes.username).join(",")}&filter[betaGroups]=${group.id}`);
+        }
     }, [allUsers]);
 
     useEffect(() => {
@@ -109,7 +109,7 @@ export default function InternalBetaGroupTesters({ group, app, didUpdateNewTeste
     }, [betaUsers, allUsers]);
 
     return (
-        <Form 
+        <Form
             isLoading={isLoadingUsers || isLoadingBetaUsers || submitIsLoading}
             actions={
                 <ActionPanel>
@@ -119,7 +119,7 @@ export default function InternalBetaGroupTesters({ group, app, didUpdateNewTeste
         >
             <Form.TagPicker id="testers" title="Add Existing Testers" value={itemProps.testers.value} onChange={(newValue) => {
                 setValue("testers", newValue);
-            }} > 
+            }} >
                 {availableUsers?.map((bg) => (
                     <Form.TagPicker.Item value={bg.id} title={bg.attributes.firstName + " " + bg.attributes.lastName + ` (${bg.attributes.username})`} key={bg.id} icon={Icon.Person} />
                 ))}

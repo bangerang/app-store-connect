@@ -32,7 +32,7 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
     }
 
     const deleteGroup = async (group: BetaGroup) => {
-        if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
+        if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive } })) {
             if (group.attributes.isInternalGroup) {
                 setInternalGroups(internalGroups.filter((betaGroup: BetaGroup) => betaGroup.id !== group.id));
             } else {
@@ -62,7 +62,7 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
     }
 
     return (
-        <List 
+        <List
             isLoading={isLoadingBetaGroups}
             actions={
                 <ActionPanel>
@@ -105,10 +105,10 @@ export default function BetaGroupsList({ app }: BetaGroupsListProps) {
                                         <BetaGroupDetail app={app} group={betaGroup} />
                                     }
                                 />
-                                <Action.Push title="Manage Builds" icon={Icon.Building} target={<InternalBetaGroupBuilds group={betaGroup} app={app} />}/>
+                                <Action.Push title="Manage Builds" icon={Icon.Building} target={<InternalBetaGroupBuilds group={betaGroup} app={app} />} />
                                 {createNewGroupAction()}
                                 {deleteGroupAction(betaGroup)}
-                                
+
                             </ActionPanel>
                         }
                     />

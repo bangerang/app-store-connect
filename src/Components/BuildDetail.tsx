@@ -18,7 +18,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
         return betaGroupsSchema.safeParse(response.data).data ?? null;
     });
     const usedGroups = build.betaGroups;
-    
+
     const { data: betaBuildLocalizations, isLoading: isLoadingBetaBuildLocalizations } = useAppStoreConnectApi(`/builds/${build.build.id}/betaBuildLocalizations?fields[betaBuildLocalizations]=locale,whatsNew`, (response) => {
         return betaBuildLocalizationsSchema.safeParse(response.data).data ?? null;
     });
@@ -30,7 +30,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     const previousUsedGroups = useRef<BetaGroup[] | undefined>(undefined);
 
     function dropWhatToTestErrorIfNeeded() {
-        if (whatToTestError !== undefined) {            
+        if (whatToTestError !== undefined) {
             setWhatToTestError(undefined);
         }
     }
@@ -40,18 +40,18 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
             setUsedGroupIDs(usedGroups.map(bg => bg.id));
         }
     }, [usedGroups, betaGroups]);
-    
+
 
     useEffect(() => {
         // TODO: Handle localizations
         if (betaBuildLocalizations !== null && betaBuildLocalizations.length > 0) {
             setCurrentWhatToTest(betaBuildLocalizations[0].attributes.whatsNew ?? "");
         }
-        
+
     }, [betaBuildLocalizations]);
 
     useEffect(() => {
-       dropWhatToTestErrorIfNeeded();
+        dropWhatToTestErrorIfNeeded();
     }, [currentWhatToTest]);
 
 
@@ -90,7 +90,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
         return true;
     };
 
-    const constructError =  async(response: { text: () => Promise<string> }, fallbackMessage: string) => {
+    const constructError = async (response: { text: () => Promise<string> }, fallbackMessage: string) => {
         const json = JSON.parse(await response.text());
         if ("errors" in json) {
             const errors = json.errors;
@@ -132,7 +132,6 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                     }
                 }
             });
-            console.log("response", response);
             if (response && !response.ok) {
                 const error = await constructError(response, "Could not submit for beta review");
                 throw error;
@@ -144,7 +143,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     };
 
     const addGroupsToBuild = async () => {
-        const newGroupIDs = usedGroupsIDs.filter(bg => !usedGroups?.find(bg2 => bg2.id === bg)); 
+        const newGroupIDs = usedGroupsIDs.filter(bg => !usedGroups?.find(bg2 => bg2.id === bg));
         const newGroups = betaGroups?.filter(bg => newGroupIDs.find(bg2 => bg2 === bg.id));
         if (newGroups) {
             for (const group of newGroups) {
@@ -157,7 +156,6 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                     ]
                 });
                 if (response && !response.ok) {
-                    console.log("response", response);
                     const error = constructError(response, "Could not add group to build");
                     throw error;
                 }
@@ -172,7 +170,6 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
         const removedGroups = usedGroups.filter(bg => !usedGroupsIDs.find(bg2 => bg2 === bg.id));
         if (removedGroups) {
             for (const group of removedGroups) {
-                console.log("removing group", group);
                 const response = await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds`, "DELETE", {
                     data: [
                         {
@@ -212,7 +209,7 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
     };
 
     return (
-        <Form 
+        <Form
             actions={
                 <ActionPanel>
                     <Action.SubmitForm title={getSubmitTitle()} onSubmit={() => {
@@ -227,10 +224,9 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                                     const submitted = await submitForBetaReview();
                                     const added = await addGroupsToBuild();
                                     if (added) {
-                                        console.log("added");
                                         groupsDidChange(usedGroups ?? []);
                                     }
-                                    
+
                                     const removed = await removeGroupsFromBuild();
                                     if (removed) {
                                         groupsDidChange(usedGroups ?? []);
@@ -261,67 +257,67 @@ export default function BuildDetail({ build, app, groupsDidChange, betaStateDidC
                             setWhatToTestError("You must specify what to test");
                         }
                     }} />
-                {!isExpired() && <Action title="Expire" onAction={async () => {
-                    (async () => {
-                        try {
-                            setSubmitIsLoading(true);
-                            await expireBuild();
-                            betaStateDidChange("EXPIRED");
-                            showToast({
-                                style: Toast.Style.Success,
-                                title: "Success!",
-                                message: "Expired",
-                            });
-                            setSubmitIsLoading(false);
-                        } catch (error) {
-                            presentError(error);
-                            setSubmitIsLoading(false);
-                        }
-                    })();
-                }} />}
+                    {!isExpired() && <Action title="Expire" onAction={async () => {
+                        (async () => {
+                            try {
+                                setSubmitIsLoading(true);
+                                await expireBuild();
+                                betaStateDidChange("EXPIRED");
+                                showToast({
+                                    style: Toast.Style.Success,
+                                    title: "Success!",
+                                    message: "Expired",
+                                });
+                                setSubmitIsLoading(false);
+                            } catch (error) {
+                                presentError(error);
+                                setSubmitIsLoading(false);
+                            }
+                        })();
+                    }} />}
                 </ActionPanel>
             }
             isLoading={isLoadingBetaGroups || isLoadingBetaBuildLocalizations || submitIsLoading}>
-                <Form.TagPicker id="betaGroups" title="Beta Groups" value={usedGroupsIDs} onChange={setUsedGroupIDs} >
-                    {betaGroups?.map((bg) => (
-                        <Form.TagPicker.Item value={bg.id} title={bg.attributes.name} key={bg.id} icon={{ source: Icon.Dot, tintColor: bg.attributes.isInternalGroup ? Color.Green : Color.Yellow }} />
-                    ))}
-                </Form.TagPicker>
-                <Form.TextArea
-                    id="description" 
-                    placeholder="What to test" 
-                    error={whatToTestError}
-                    value={currentWhatToTest} 
-                    onChange={(newValue) => setCurrentWhatToTest(newValue)} 
-                    onBlur={(event) => {
-                        const value = event.target.value;
-                        if (validateWhatToTest(value, usedGroups)) {
-                            dropWhatToTestErrorIfNeeded();
-                        } else {
-                            setWhatToTestError("You must specify what to test.");
-                        }
-                    }}
-                    />
+            <Form.TagPicker id="betaGroups" title="Beta Groups" value={usedGroupsIDs} onChange={setUsedGroupIDs} >
+                {betaGroups?.map((bg) => (
+                    <Form.TagPicker.Item value={bg.id} title={bg.attributes.name} key={bg.id} icon={{ source: Icon.Dot, tintColor: bg.attributes.isInternalGroup ? Color.Green : Color.Yellow }} />
+                ))}
+            </Form.TagPicker>
+            <Form.TextArea
+                id="description"
+                placeholder="What to test"
+                error={whatToTestError}
+                value={currentWhatToTest}
+                onChange={(newValue) => setCurrentWhatToTest(newValue)}
+                onBlur={(event) => {
+                    const value = event.target.value;
+                    if (validateWhatToTest(value, usedGroups)) {
+                        dropWhatToTestErrorIfNeeded();
+                    } else {
+                        setWhatToTestError("You must specify what to test.");
+                    }
+                }}
+            />
         </Form>
     );
 }
 
 class ATCError extends Error {
     constructor(
-      public title: string,
-      public detail: string
+        public title: string,
+        public detail: string
     ) {
-      super(title);
-      this.name = this.constructor.name;
-      
-      // Maintain proper stack trace
-      if (Error.captureStackTrace) {
-        Error.captureStackTrace(this, ATCError);
-      }
+        super(title);
+        this.name = this.constructor.name;
+
+        // Maintain proper stack trace
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(this, ATCError);
+        }
     }
 }
 
-function validateWhatToTest(whatToTest: string | undefined, usedGroups: BetaGroup[]) {
+function validateWhatToTest(whatToTest: string | undefined, usedGroups: BetaGroup[]) {
     const notInternal = usedGroups.find(bg => {
         return !bg.attributes.isInternalGroup;
     });

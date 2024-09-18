@@ -6,8 +6,8 @@ import { App, BetaGroup, betaGroupSchema } from "../Model/schemas";
 import { useState } from "react";
 
 interface Props {
-    app: App;
-    didCreateNewGroup: (newGroup: BetaGroup) => void;
+  app: App;
+  didCreateNewGroup: (newGroup: BetaGroup) => void;
 }
 interface CreateNewGroupFormValues {
   isInternal: boolean;
@@ -18,46 +18,46 @@ export default function CreateNewGroup({ app, didCreateNewGroup }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const { handleSubmit, itemProps, values } = useForm<CreateNewGroupFormValues>({
     onSubmit(values) {
-        (async () => {
-            setIsLoading(true);
-            try {
-                const response = await fetchAppStoreConnect(`/betaGroups`, "POST", {
-                    data: {
-                        type: "betaGroups",
-                        relationships: {
-                            app: {
-                                data: {
-                                    type: "apps",
-                                    id: app.id
-                                }
-                            }
-                        },
-                        attributes: {
-                            name: values.name,
-                            isInternalGroup: values.isInternal,
-                            hasAccessToAllBuilds: values.hasAccessToAllBuilds
-                        }
-                    }
-                });
-                setIsLoading(false);
-                showToast({
-                    style: Toast.Style.Success,
-                    title: "Success!",
-                    message: "Created group",
-                });
-                if (response && response.ok) {
-                    const json = await response.json();
-                    const newGroup = betaGroupSchema.safeParse(json.data); 
-                    if (newGroup.success) {
-                        didCreateNewGroup(json.data);
-                    }
+      (async () => {
+        setIsLoading(true);
+        try {
+          const response = await fetchAppStoreConnect(`/betaGroups`, "POST", {
+            data: {
+              type: "betaGroups",
+              relationships: {
+                app: {
+                  data: {
+                    type: "apps",
+                    id: app.id
+                  }
                 }
+              },
+              attributes: {
+                name: values.name,
+                isInternalGroup: values.isInternal,
+                hasAccessToAllBuilds: values.hasAccessToAllBuilds
+              }
             }
-            catch (error) {
-                setIsLoading(false);
-                presentError(error);
+          });
+          setIsLoading(false);
+          showToast({
+            style: Toast.Style.Success,
+            title: "Success!",
+            message: "Created group",
+          });
+          if (response && response.ok) {
+            const json = await response.json();
+            const newGroup = betaGroupSchema.safeParse(json.data);
+            if (newGroup.success) {
+              didCreateNewGroup(json.data);
             }
-        })();
+          }
+        }
+        catch (error) {
+          setIsLoading(false);
+          presentError(error);
+        }
+      })();
     },
     initialValues: {
       isInternal: true,

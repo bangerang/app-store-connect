@@ -95,21 +95,21 @@ export default function BetaGroupDetail({ app, group }: Props) {
         }} />} />
     }
     const manageBuildsAction = () => {
-        return <Action.Push title="Manage Builds" shortcut={{ modifiers: ["cmd"], key: "b" }} icon={Icon.Building} target={<ManageInternalBuilds 
-            app={app} 
-            group={group} 
+        return <Action.Push title="Manage Builds" shortcut={{ modifiers: ["cmd"], key: "b" }} icon={Icon.Building} target={<ManageInternalBuilds
+            app={app}
+            group={group}
             didAddBuilds={(builds) => {
-                
+
             }}
             didRemoveBuilds={(builds) => {
-                
+
             }}
         />} />
     }
     const removeTesterAction = (tester: BetaTester) => {
         return <Action title="Remove from group" style={Action.Style.Destructive} shortcut={Keyboard.Shortcut.Common.Remove} icon={Icon.Trash} onAction={() => {
             (async () => {
-                if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
+                if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive } })) {
                     setTesters(testers.filter(t => t.id !== tester.id));
                     await fetchAppStoreConnect(`/betaTesters/${tester.id}/relationships/betaGroups`, "DELETE", {
                         data: [{
@@ -124,13 +124,13 @@ export default function BetaGroupDetail({ app, group }: Props) {
 
     const copyAction = (user: BetaTester) => {
         return <>
-            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} /> 
+            <Action.CopyToClipboard title="Copy Name" shortcut={Keyboard.Shortcut.Common.Copy} content={user.attributes.firstName + " " + user.attributes.lastName} />
             <Action.CopyToClipboard title="Copy Email" shortcut={{ modifiers: ["cmd", "shift"], key: "." }} content={user.attributes.email ?? ""} />
         </>
     }
 
     return (
-        <List 
+        <List
             isLoading={isLoadingBetaGroup || isLoadingBetaTesterUsages}
             pagination={pagination}
             actions={
@@ -145,28 +145,28 @@ export default function BetaGroupDetail({ app, group }: Props) {
                             {addNewTesterAction()}
                             {addMultipleTestersAction()}
                         </>
-                        }
+                    }
                 </ActionPanel>
             }
         >
-                {testers?.map((tester: BetaTester) => (
-                    <List.Item
-                        title={(tester.attributes.inviteType === "PUBLIC_LINK" ? tester.attributes.firstName : tester.attributes.firstName + " " + tester.attributes.lastName) ?? ""}
-                        subtitle={tester.attributes.inviteType === "PUBLIC_LINK" ? "Public link" ?? "" : tester.attributes.email ?? ""}
-                        key={tester.id}
-                        icon={{ source: Icon.Person }}
-                        accessories={listAccessory(tester)}
-                        actions={
-                            <ActionPanel>
-                                {copyAction(tester)}
-                                {removeTesterAction(tester)}
-                                {addNewTesterAction()}
-                                {addMultipleTestersAction()}
-                                {manageBuildsAction()}
-                            </ActionPanel>
-                        }
-                    />
-                ))}
+            {testers?.map((tester: BetaTester) => (
+                <List.Item
+                    title={(tester.attributes.inviteType === "PUBLIC_LINK" ? tester.attributes.firstName : tester.attributes.firstName + " " + tester.attributes.lastName) ?? ""}
+                    subtitle={tester.attributes.inviteType === "PUBLIC_LINK" ? "Public link" ?? "" : tester.attributes.email ?? ""}
+                    key={tester.id}
+                    icon={{ source: Icon.Person }}
+                    accessories={listAccessory(tester)}
+                    actions={
+                        <ActionPanel>
+                            {copyAction(tester)}
+                            {removeTesterAction(tester)}
+                            {addNewTesterAction()}
+                            {addMultipleTestersAction()}
+                            {manageBuildsAction()}
+                        </ActionPanel>
+                    }
+                />
+            ))}
         </List>
     );
 }

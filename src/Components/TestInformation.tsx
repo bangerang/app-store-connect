@@ -39,11 +39,9 @@ export default function TestInformation({ app }: TestInformationProps) {
     const { handleSubmit, itemProps, setValue } = useForm<TestInformationFormValues>({
         onSubmit(values) {
             if (!reviewDetails || !appLocalizations || !licenseAgreements) {
-                console.log("No data", reviewDetails, appLocalizations, licenseAgreements);
                 return;
             }
             if (reviewDetails && reviewDetails.length === 0 || appLocalizations && appLocalizations.length === 0 || licenseAgreements && licenseAgreements.length === 0) {
-                console.log("No data length");
                 return;
             }
             setSubmitIsLoading(true);
@@ -100,20 +98,20 @@ export default function TestInformation({ app }: TestInformationProps) {
             })();
         },
         validation: {
-          reviewDemoAccountUsername: (value) => {
-            const reviewSignInRequired = (itemProps.reviewSignInRequired.value as boolean) === true;
-            if (reviewSignInRequired && !value) {
-              return "Username is required";
-            }
-          },
-          reviewDemoAccountPassword: (value) => {
-            const reviewSignInRequired = (itemProps.reviewSignInRequired.value as boolean) === true;
-            if (reviewSignInRequired && !value) {
-              return "Password is required";
-            }
-          },
+            reviewDemoAccountUsername: (value) => {
+                const reviewSignInRequired = (itemProps.reviewSignInRequired.value as boolean) === true;
+                if (reviewSignInRequired && !value) {
+                    return "Username is required";
+                }
+            },
+            reviewDemoAccountPassword: (value) => {
+                const reviewSignInRequired = (itemProps.reviewSignInRequired.value as boolean) === true;
+                if (reviewSignInRequired && !value) {
+                    return "Password is required";
+                }
+            },
         },
-      });
+    });
 
     useEffect(() => {
         if (appLocalizations && appLocalizations.length > 0) {
@@ -144,93 +142,93 @@ export default function TestInformation({ app }: TestInformationProps) {
     const reviewSignInRequired = (itemProps.reviewSignInRequired.value as boolean) === true;
 
     return (
-        <Form 
+        <Form
             actions={
                 <ActionPanel>
-                <Action.SubmitForm title="Submit" onSubmit={handleSubmit} />
+                    <Action.SubmitForm title="Submit" onSubmit={handleSubmit} />
                 </ActionPanel>
             }
             isLoading={isLoadingReviewDetails || isLoadingAppLocalizations || isLoadingLicenseAgreements || submitIsLoading}>
-                <Form.Description 
-                    title="Beta App Information" 
-                    text="This information will be shown for the testers of your beta app."
-                />
-                <Form.TextArea
-                    title="Description"
-                    placeholder="Beta App Description"
-                    {...itemProps.currentDescription}
-                />
-                <Form.TextField
-                    title="Feedback Email"
-                    placeholder="Feedback Email"
-                    {...itemProps.currentFeedbackMail}
-                />
-                <Form.TextField
-                    title="Marketing URL"
-                    placeholder="Marketing URL"
-                    {...itemProps.currentMarketingUrl}
-                />
-                <Form.TextField
-                    title="Privacy Policy URL"
-                    placeholder="Privacy Policy URL"
-                    {...itemProps.currentPrivacyPolicyUrl}
-                />
-                <Form.Separator />
-                <Form.Description 
-                    title="Beta App Review Information"
-                    text="Contact information and instructions to App Store reviewers."
-                />
-                <Form.TextField
-                    title="First Name"
-                    placeholder="First Name" 
-                    {...itemProps.reviewFirstName}
-                />
-                <Form.TextField
-                    title="Last Name"
-                    placeholder="Last Name" 
-                    {...itemProps.reviewLastName}
-                />
-                <Form.TextField
-                    title="Phone"
-                    placeholder="Phone"
-                    {...itemProps.reviewPhone}
-                />
-                <Form.TextField
-                    title="Email"
-                    placeholder="Email"
-                    {...itemProps.reviewEmail}
-                />
-                <Form.Checkbox
-                    label="Sign In Required"
-                    {...itemProps.reviewSignInRequired}
-                />
-                {reviewSignInRequired && ( 
-                    <>
-                        <Form.TextField
-                            title="Username"
-                            {...itemProps.reviewDemoAccountUsername}
-                        />
-                        <Form.PasswordField
-                            title="Password"
-                            {...itemProps.reviewDemoAccountPassword}
-                        />
-                    </>
-                )}
-                <Form.TextArea
-                    title="Review Notes"
-                    placeholder="Notes"
-                    {...itemProps.reviewNotes}
-                />
-                <Form.Separator />
-                <Form.Description
-                    title="License Agreement"
-                    text="The license agreement is displayed to users when they attempt to install your beta app."
-                />
-                <Form.TextArea
-                    title="License Agreement"
-                    placeholder="License Agreement"
-                    {...itemProps.currentLicenseAgreement}
-                />
+            <Form.Description
+                title="Beta App Information"
+                text="This information will be shown for the testers of your beta app."
+            />
+            <Form.TextArea
+                title="Description"
+                placeholder="Beta App Description"
+                {...itemProps.currentDescription}
+            />
+            <Form.TextField
+                title="Feedback Email"
+                placeholder="Feedback Email"
+                {...itemProps.currentFeedbackMail}
+            />
+            <Form.TextField
+                title="Marketing URL"
+                placeholder="Marketing URL"
+                {...itemProps.currentMarketingUrl}
+            />
+            <Form.TextField
+                title="Privacy Policy URL"
+                placeholder="Privacy Policy URL"
+                {...itemProps.currentPrivacyPolicyUrl}
+            />
+            <Form.Separator />
+            <Form.Description
+                title="Beta App Review Information"
+                text="Contact information and instructions to App Store reviewers."
+            />
+            <Form.TextField
+                title="First Name"
+                placeholder="First Name"
+                {...itemProps.reviewFirstName}
+            />
+            <Form.TextField
+                title="Last Name"
+                placeholder="Last Name"
+                {...itemProps.reviewLastName}
+            />
+            <Form.TextField
+                title="Phone"
+                placeholder="Phone"
+                {...itemProps.reviewPhone}
+            />
+            <Form.TextField
+                title="Email"
+                placeholder="Email"
+                {...itemProps.reviewEmail}
+            />
+            <Form.Checkbox
+                label="Sign In Required"
+                {...itemProps.reviewSignInRequired}
+            />
+            {reviewSignInRequired && (
+                <>
+                    <Form.TextField
+                        title="Username"
+                        {...itemProps.reviewDemoAccountUsername}
+                    />
+                    <Form.PasswordField
+                        title="Password"
+                        {...itemProps.reviewDemoAccountPassword}
+                    />
+                </>
+            )}
+            <Form.TextArea
+                title="Review Notes"
+                placeholder="Notes"
+                {...itemProps.reviewNotes}
+            />
+            <Form.Separator />
+            <Form.Description
+                title="License Agreement"
+                text="The license agreement is displayed to users when they attempt to install your beta app."
+            />
+            <Form.TextArea
+                title="License Agreement"
+                placeholder="License Agreement"
+                {...itemProps.currentLicenseAgreement}
+            />
         </Form>
     );
 }

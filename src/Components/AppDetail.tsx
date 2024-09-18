@@ -7,10 +7,10 @@ export default function AppDetail({ app }: { app: App }) {
 
   return (
     <List>
-        <List.Item
-            icon={Icon.Rocket}
-            title="TestFlight"
-            />
+      <List.Item
+        icon={Icon.Rocket}
+        title="TestFlight"
+      />
     </List>
   );
 }

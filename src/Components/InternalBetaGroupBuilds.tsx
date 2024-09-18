@@ -1,5 +1,5 @@
 import { Icon, ActionPanel, Action, Color, List, showToast, Toast, confirmAlert, Alert } from "@raycast/api";
-import { BetaGroup, App, BuildWithBetaDetailAndBetaGroups, buildsWithBetaDetailSchema, preReleaseVersionSchemas} from "../Model/schemas";
+import { BetaGroup, App, BuildWithBetaDetailAndBetaGroups, buildsWithBetaDetailSchema, preReleaseVersionSchemas } from "../Model/schemas";
 import { useAppStoreConnectApi, fetchAppStoreConnect } from "../Hooks/useAppStoreConnect";
 import { useEffect, useState } from "react";
 import BuildDetail from "./BuildDetail";
@@ -16,7 +16,7 @@ interface VersionWithPlatform {
     version: string;
 }
 
-export default function InternalBetaGroupBuilds({ group, app }: Props) {   
+export default function InternalBetaGroupBuilds({ group, app }: Props) {
     const [selectedVersion, setSelectedVersion] = useState<VersionWithPlatform | undefined>(undefined);
 
     const [buildsPath, setBuildsPath] = useState<string | undefined>(undefined);
@@ -33,7 +33,7 @@ export default function InternalBetaGroupBuilds({ group, app }: Props) {
 
     const [currentBuilds, setCurrentBuilds] = useState<BuildWithBetaDetailAndBetaGroups[]>([]);
 
-    useEffect(() => {        
+    useEffect(() => {
         if (builds !== null) {
             setCurrentBuilds(builds);
         }
@@ -50,16 +50,15 @@ export default function InternalBetaGroupBuilds({ group, app }: Props) {
             });
             setVersions(versions);
         }
-        console.log({preReleaseVersions});
     }, [preReleaseVersions]);
 
     useEffect(() => {
-      if (selectedVersion !== undefined ) {
-        setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&filter[betaGroups]=${group.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
-      }
+        if (selectedVersion !== undefined) {
+            setBuildsPath(`/builds?filter[preReleaseVersion.platform]=${selectedVersion.platform}&filter[preReleaseVersion.version]=${selectedVersion.version}&filter[app]=${app.id}&filter[betaGroups]=${group.id}&sort=-uploadedDate&fields[builds]=processingState,iconAssetToken,uploadedDate,version,betaGroups,buildAudienceType,expirationDate,expired,buildBetaDetail&limit=5&include=buildBetaDetail,betaGroups&fields[buildBetaDetails]=externalBuildState,internalBuildState`)
+        }
     }, [selectedVersion])
 
-    const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
+    const platformWithVersion = (appStoreVersion: VersionWithPlatform | undefined) => {
         if (!appStoreVersion) {
             return "";
         }
@@ -156,49 +155,49 @@ export default function InternalBetaGroupBuilds({ group, app }: Props) {
             return "Expires in " + days.toString() + " days";
         }
     }
-    
+
     return (
-        <List 
+        <List
             isLoading={isLoadingApp || isLoadingPreReleaseVersions}
             actions={
                 <ActionPanel>
-                    {!group.attributes.hasAccessToAllBuilds && 
-                        <Action.Push 
-                        title="Manage Builds" 
-                        target={
-                            <ManageInternalBuilds 
-                                app={app} 
-                                group={group} 
-                                didAddBuilds={(builds) => {
-                                    // Make sure we don't add the same build twice
-                                    setCurrentBuilds(currentBuilds.filter(b => !builds.find(build => build.build.id === b.build.id)));
-                                }}
-                                didRemoveBuilds={(builds) => {
-                                    setCurrentBuilds(currentBuilds.filter(b => !builds.find(build => build.build.id === b.build.id)));
-                                }}
+                    {!group.attributes.hasAccessToAllBuilds &&
+                        <Action.Push
+                            title="Manage Builds"
+                            target={
+                                <ManageInternalBuilds
+                                    app={app}
+                                    group={group}
+                                    didAddBuilds={(builds) => {
+                                        // Make sure we don't add the same build twice
+                                        setCurrentBuilds(currentBuilds.filter(b => !builds.find(build => build.build.id === b.build.id)));
+                                    }}
+                                    didRemoveBuilds={(builds) => {
+                                        setCurrentBuilds(currentBuilds.filter(b => !builds.find(build => build.build.id === b.build.id)));
+                                    }}
                                 />
-                        }
-                    />
+                            }
+                        />
                     }
                 </ActionPanel>
             }
             searchBarAccessory={
                 <List.Dropdown
-                tooltip="Select App Version"
-                value={platformWithVersion(selectedVersion)}
-                onChange={(newValue) => {
-                    if (versions === undefined) {
-                        return;
-                    }
-                    setBuildsPath("");
-                    const newVersion = versions.find(version => version.id === newValue);
-                    setSelectedVersion(newVersion);
-                }}
-              >
-                {(versions ?? [])?.map((version: VersionWithPlatform) => (
-                    <List.Dropdown.Item title={platformWithVersion(version)} value={version.id} />
-                ))}
-              </List.Dropdown>
+                    tooltip="Select App Version"
+                    value={platformWithVersion(selectedVersion)}
+                    onChange={(newValue) => {
+                        if (versions === undefined) {
+                            return;
+                        }
+                        setBuildsPath("");
+                        const newVersion = versions.find(version => version.id === newValue);
+                        setSelectedVersion(newVersion);
+                    }}
+                >
+                    {(versions ?? [])?.map((version: VersionWithPlatform) => (
+                        <List.Dropdown.Item title={platformWithVersion(version)} value={version.id} />
+                    ))}
+                </List.Dropdown>
             }
         >
             {currentBuilds?.map((bg) => (
@@ -213,12 +212,12 @@ export default function InternalBetaGroupBuilds({ group, app }: Props) {
                     }
                     actions={
                         <ActionPanel>
-                            {!group.attributes.hasAccessToAllBuilds && 
+                            {!group.attributes.hasAccessToAllBuilds &&
                                 <>
                                     <Action title="Remove build from group" style={Action.Style.Destructive} icon={Icon.Trash} onAction={async () => {
                                         setCurrentBuilds(currentBuilds.filter(b => b.build.id !== bg.build.id));
                                         (async () => {
-                                            if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive }})) { 
+                                            if (await confirmAlert({ title: "Are you sure?", primaryAction: { title: "Remove", style: Alert.ActionStyle.Destructive } })) {
                                                 setCurrentBuilds(currentBuilds.filter(b => b.build.id !== bg.build.id));
                                                 await fetchAppStoreConnect(`/betaGroups/${group.id}/relationships/builds `, "DELETE", {
                                                     data: [{
@@ -229,27 +228,27 @@ export default function InternalBetaGroupBuilds({ group, app }: Props) {
                                             }
                                         })();
                                     }} />
-                                    <Action.Push 
-                                        title="Manage Builds" 
+                                    <Action.Push
+                                        title="Manage Builds"
                                         target={
-                                            <ManageInternalBuilds 
-                                                app={app} 
-                                                group={group} 
+                                            <ManageInternalBuilds
+                                                app={app}
+                                                group={group}
                                                 didAddBuilds={(builds) => {
                                                     setCurrentBuilds(currentBuilds.concat(builds));
                                                 }}
                                                 didRemoveBuilds={(builds) => {
                                                     setCurrentBuilds(currentBuilds.filter(b => !builds.find(build => build.build.id === b.build.id)));
                                                 }}
-                                                />
+                                            />
                                         }
                                     />
                                 </>
                             }
-                            <Action.Push title="Manage Beta Groups" target={<BuildDetail app={app} build={bg} groupsDidChange={()=>{}} betaStateDidChange={()=>{}} />}/>
-                            <Action.Push title="Update Individual Testers" target={<IndividualTestersList app={app} build={bg} />}/>
+                            <Action.Push title="Manage Beta Groups" target={<BuildDetail app={app} build={bg} groupsDidChange={() => { }} betaStateDidChange={() => { }} />} />
+                            <Action.Push title="Update Individual Testers" target={<IndividualTestersList app={app} build={bg} />} />
                         </ActionPanel>
-                    }         
+                    }
                 />
             ))}
         </List>
