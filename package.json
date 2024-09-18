@@ -11,12 +11,6 @@
   "license": "MIT",
   "commands": [
     {
-      "name": "showApps",
-      "title": "Manage Apps",
-      "description": "Show and manage apps",
-      "mode": "view"
-    },
-    {
       "name": "testFlightBuilds",
       "title": "Manage Builds",
       "description": "Show and manage builds",
