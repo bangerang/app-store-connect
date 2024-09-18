@@ -3,7 +3,7 @@
   "name": "app-store-connect",
   "title": "App Store Connect",
   "description": "Perform tasks from App Store Connect",
-  "icon": "Group4.png",
+  "icon": "icon.png",
   "author": "johanthorell",
   "categories": [
     "Developer Tools"
