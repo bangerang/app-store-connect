@@ -37,12 +37,12 @@ export const useTeams = () => {
     }
     const json = JSON.parse(storageTeams);
     const parsed = teamSchemas.parse(json);
-    const filtered = parsed.filter((t) => t.issuerID !== team.issuerID);
+    const filtered = parsed.filter((t) => t.apiKey !== team.apiKey);
     const newJson = JSON.stringify(filtered);
     await LocalStorage.setItem("teams", newJson);
     setTeams(await getTeams());
     const currentTeam = await getCurrentTeam();
-    if (currentTeam?.issuerID === team.issuerID) {
+    if (currentTeam?.apiKey === team.apiKey) {
       await removeCurrentTeam();
       const newTeams = await getTeams();
       setTeams(newTeams);
