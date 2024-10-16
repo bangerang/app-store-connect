@@ -183,9 +183,6 @@ export default function BuildItem({ build, app }: BuildItemProps) {
   };
 
   const expirationIcon = () => {
-    if (!build.build) {
-      return {};
-    }
     const b = build.build;
     const expirationDate = new Date(b.attributes.expirationDate);
     const currentDate = new Date();
@@ -221,9 +218,6 @@ export default function BuildItem({ build, app }: BuildItemProps) {
   };
 
   const isMissingExportCompliance = () => {
-    if (!build.buildBetaDetails.attributes) {
-      return false;
-    }
     return build.buildBetaDetails.attributes.externalBuildState === "MISSING_EXPORT_COMPLIANCE";
   };
 
