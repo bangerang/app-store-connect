@@ -76,9 +76,9 @@ export default function AddTeam({ didSignIn }: SignInProps) {
         placeholder="Team name"
         info="Name of the team, this is only used for display purposes"
       />
-      <Form.TextField id="issuerID" placeholder="Issuer ID" />
-      <Form.TextField id="apiKey" placeholder="Key ID" />
-      <Form.FilePicker id="privateKey" title="Private key" allowMultipleSelection={false} />
+      <Form.TextField title="Issuer ID" id="issuerID" placeholder="Issuer ID" />
+      <Form.TextField title="Key ID" id="apiKey" placeholder="Key ID" />
+      <Form.FilePicker title="Private key" id="privateKey" allowMultipleSelection={false} />
     </Form>
   );
 }

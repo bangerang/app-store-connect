@@ -88,12 +88,12 @@ export default function SignIn({ children, didSignIn }: SignInProps) {
         }
       >
         <Form.TextField
+          title="Team name"
           id="name"
-          placeholder="Team name"
           info="Name of the team, this is only used for display purposes"
         />
-        <Form.TextField id="issuerID" placeholder="Issuer ID" />
-        <Form.TextField id="apiKey" placeholder="API Key" />
+        <Form.TextField title="Issuer ID" id="issuerID" />
+        <Form.TextField title="API Key" id="apiKey"/>
         <Form.FilePicker id="privateKey" title="Private key" allowMultipleSelection={false} />
       </Form>
     );

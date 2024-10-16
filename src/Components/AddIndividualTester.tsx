@@ -378,6 +378,7 @@ export default function AddIndividualTester({ build, app, didUpdateExistingTeste
       />
       <Form.TextArea
         id="description"
+        title="What to test"
         placeholder="What to test"
         error={whatToTestError}
         value={currentWhatToTest}
