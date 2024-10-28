@@ -31,7 +31,7 @@ export default function TestInformation({ app }: TestInformationProps) {
       return betaAppReviewDetailsSchema.safeParse(response.data).data ?? null;
     },
   );
-  
+
   const { data: appLocalizations, isLoading: isLoadingAppLocalizations } = useAppStoreConnectApi(
     `/betaAppLocalizations?filter[app]=${app.id}&limit=40`,
     (response) => {
@@ -130,8 +130,8 @@ export default function TestInformation({ app }: TestInformationProps) {
   useEffect(() => {
     if (appLocalizations && appLocalizations.length > 0) {
       // TODO: Handle multiple localizations
-      setValue("currentDescription", appLocalizations[0].attributes.description);
-      setValue("currentFeedbackMail", appLocalizations[0].attributes.feedbackEmail);
+      setValue("currentDescription", appLocalizations[0].attributes.description || "");
+      setValue("currentFeedbackMail", appLocalizations[0].attributes.feedbackEmail || "");
       setValue("currentMarketingUrl", appLocalizations[0].attributes.marketingUrl || "");
       setValue("currentPrivacyPolicyUrl", appLocalizations[0].attributes.privacyPolicyUrl || "");
     }
