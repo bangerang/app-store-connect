@@ -30,9 +30,7 @@ export default function InviteTeamMember({ didInviteNewUser }: Props) {
       (async () => {
         setIsLoading(true);
         try {
-          const visibleApps = values.allAppsVisible
-            ? allApps?.map((app) => app.id)
-            : values.visibleApps;
+          const visibleApps = values.allAppsVisible ? allApps?.map((app) => app.id) : values.visibleApps;
           const data = {
             data: {
               type: "userInvitations",
